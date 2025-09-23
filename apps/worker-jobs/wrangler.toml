@@ -1,0 +1,29 @@
+name = "raffle-arcade-jobs"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "raffle-arcade"
+database_id = "YOUR_DATABASE_ID"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "YOUR_KV_NAMESPACE_ID"
+
+[[durable_objects.bindings]]
+name = "RAFFLE_DO"
+class_name = "RaffleDO"
+script_name = "raffle-arcade-api"
+
+[triggers]
+crons = [
+  "*/5 * * * *",     # Every 5 minutes - raffle draws
+  "0 * * * *",       # Every hour - create hourly raffles
+  "0 0 * * *",       # Daily - reset daily limits and create daily raffles
+  "0 0 * * 1"        # Weekly - create weekly raffles and season management
+]
+
+[secrets]
+# Add these in Cloudflare dashboard:
+# SERVER_SEED
