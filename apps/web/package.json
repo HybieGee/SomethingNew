@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@raffle-arcade/shared": "workspace:*",
     "@tanstack/react-query": "^5.0.0",
     "clsx": "^2.0.0",
     "framer-motion": "^10.0.0",
@@ -19,6 +18,7 @@
     "react-router-dom": "^6.20.0",
     "sonner": "^1.2.0",
     "tailwind-merge": "^2.0.0",
+    "zod": "^3.22.0",
     "zustand": "^4.4.0"
   },
   "devDependencies": {
