@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
-import { User, Key, Wallet } from 'lucide-react';
+import { User, Key, Wallet, ArrowLeft } from 'lucide-react';
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -11,6 +12,7 @@ export default function AuthPage() {
   const [solanaAddress, setSolanaAddress] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const navigate = useNavigate();
   const { login, register } = useAuthStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,6 +27,7 @@ export default function AuthPage() {
         await register(username, password, solanaAddress);
         toast.success('Account created successfully!');
       }
+      navigate('/home');
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -33,12 +36,24 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-900/20 to-slate-900">
+      {/* Back to Home Link */}
+      <div className="p-4">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </Link>
+      </div>
+
+      <div className="min-h-screen flex items-center justify-center p-4 -mt-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md"
+        >
         <div className="text-center mb-8">
           <motion.h1
             className="text-6xl font-bold arcade-gradient bg-clip-text text-transparent mb-2"

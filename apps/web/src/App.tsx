@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import Layout from '@/components/Layout';
 import AuthPage from '@/pages/AuthPage';
+import LandingPage from '@/pages/LandingPage';
 import HomePage from '@/pages/HomePage';
 import QuestsPage from '@/pages/QuestsPage';
 import RafflesPage from '@/pages/RafflesPage';
@@ -13,23 +14,99 @@ import AdminPage from '@/pages/AdminPage';
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  if (!isAuthenticated) {
-    return <AuthPage />;
-  }
-
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/quests" element={<QuestsPage />} />
-        <Route path="/raffles" element={<RafflesPage />} />
-        <Route path="/store" element={<StorePage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/leaderboard" element={<LeaderboardPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </Layout>
+    <Routes>
+      {/* Public routes - no auth required */}
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/auth" element={<AuthPage />} />
+
+      {/* Protected routes - require authentication */}
+      <Route
+        path="/home"
+        element={
+          isAuthenticated ? (
+            <Layout>
+              <HomePage />
+            </Layout>
+          ) : (
+            <Navigate to="/auth" />
+          )
+        }
+      />
+      <Route
+        path="/quests"
+        element={
+          isAuthenticated ? (
+            <Layout>
+              <QuestsPage />
+            </Layout>
+          ) : (
+            <Navigate to="/auth" />
+          )
+        }
+      />
+      <Route
+        path="/raffles"
+        element={
+          isAuthenticated ? (
+            <Layout>
+              <RafflesPage />
+            </Layout>
+          ) : (
+            <Navigate to="/auth" />
+          )
+        }
+      />
+      <Route
+        path="/store"
+        element={
+          isAuthenticated ? (
+            <Layout>
+              <StorePage />
+            </Layout>
+          ) : (
+            <Navigate to="/auth" />
+          )
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          isAuthenticated ? (
+            <Layout>
+              <ProfilePage />
+            </Layout>
+          ) : (
+            <Navigate to="/auth" />
+          )
+        }
+      />
+      <Route
+        path="/leaderboard"
+        element={
+          isAuthenticated ? (
+            <Layout>
+              <LeaderboardPage />
+            </Layout>
+          ) : (
+            <Navigate to="/auth" />
+          )
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          isAuthenticated ? (
+            <Layout>
+              <AdminPage />
+            </Layout>
+          ) : (
+            <Navigate to="/auth" />
+          )
+        }
+      />
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
   );
 }
 
