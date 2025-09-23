@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
-import { UpdateAddressSchema } from './shared';
-import { calculateDailyReward, GAME_CONFIG } from './shared';
+import { UpdateAddressSchema } from '../shared/index';
+import { calculateDailyReward, GAME_CONFIG } from '../shared/index';
 import type { Env } from '../types';
 
 export const profileRouter = new Hono<{ Bindings: Env }>();

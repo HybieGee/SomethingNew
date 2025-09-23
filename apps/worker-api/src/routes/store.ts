@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
-import { PurchaseItemSchema } from './shared';
+import { PurchaseItemSchema } from '../shared/index';
 import type { Env } from '../types';
 
 export const storeRouter = new Hono<{ Bindings: Env }>();

@@ -1,5 +1,5 @@
 const API_URL = typeof window !== 'undefined' && window.location.hostname.includes('pages.dev')
-  ? 'https://raffle-arcade-api.workers.dev'
+  ? 'https://raffle-arcade-api.claudechaindev.workers.dev'
   : '/api';
 
 export class ApiError extends Error {
@@ -52,6 +52,10 @@ export const api = {
       }),
     leaderboard: (season = 'current') =>
       fetchApi(`/leaderboard?season=${season}`),
+  },
+
+  public: {
+    stats: () => fetchApi('/public/stats'),
   },
 
   quests: {

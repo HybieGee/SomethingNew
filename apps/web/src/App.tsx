@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/authStore';
 import Layout from '@/components/Layout';
 import AuthPage from '@/pages/AuthPage';
 import LandingPage from '@/pages/LandingPage';
+import CreatorRewardsPage from '@/pages/CreatorRewardsPage';
 import HomePage from '@/pages/HomePage';
 import QuestsPage from '@/pages/QuestsPage';
 import RafflesPage from '@/pages/RafflesPage';
@@ -19,6 +20,8 @@ function App() {
       {/* Public routes - no auth required */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/auth" element={<AuthPage />} />
+      <Route path="/leaderboard" element={<LeaderboardPage />} />
+      <Route path="/creator-rewards" element={<CreatorRewardsPage />} />
 
       {/* Protected routes - require authentication */}
       <Route
@@ -75,18 +78,6 @@ function App() {
           isAuthenticated ? (
             <Layout>
               <ProfilePage />
-            </Layout>
-          ) : (
-            <Navigate to="/auth" />
-          )
-        }
-      />
-      <Route
-        path="/leaderboard"
-        element={
-          isAuthenticated ? (
-            <Layout>
-              <LeaderboardPage />
             </Layout>
           ) : (
             <Navigate to="/auth" />

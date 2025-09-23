@@ -1,14 +1,49 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { api } from '@/lib/api';
 import {
   Sparkles, Gift, Trophy, Zap, Clock, Users,
   TrendingUp, Coins, Gamepad2, Star, ArrowRight,
   ChevronRight, Check, Rocket, Timer, User
 } from 'lucide-react';
 
+interface LiveStats {
+  totalUsers: number;
+  activeUsers: number;
+  totalPrizePool: number;
+  activeRaffles: number;
+}
+
 export default function LandingPage() {
   const [hoveredFeature, setHoveredFeature] = useState<number | null>(null);
+  const [liveStats, setLiveStats] = useState<LiveStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const stats = await api.public.stats();
+        setLiveStats(stats);
+      } catch (error) {
+        console.error('Failed to fetch live stats:', error);
+        // Fallback to mock data if API fails
+        setLiveStats({
+          totalUsers: 1250,
+          activeUsers: 180,
+          totalPrizePool: 75000,
+          activeRaffles: 3
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+    // Refresh stats every 30 seconds
+    const interval = setInterval(fetchStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const features = [
     {
@@ -64,11 +99,38 @@ export default function LandingPage() {
     }
   ];
 
-  const stats = [
-    { value: "10K+", label: "Active Players" },
-    { value: "$100K", label: "Prize Pool" },
-    { value: "24/7", label: "Live Games" },
-    { value: "5 Min", label: "Quick Plays" }
+  const formatNumber = (num: number) => {
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toString();
+  };
+
+  const formatCurrency = (num: number) => {
+    if (num >= 1000) {
+      return `$${(num / 1000).toFixed(0)}K`;
+    }
+    return `$${num}`;
+  };
+
+  const stats = loading ? [
+    { value: "...", label: "Active Players" },
+    { value: "...", label: "Prize Pool" },
+    { value: "...", label: "Live Games" },
+    { value: "...", label: "Quick Plays" }
+  ] : [
+    {
+      value: formatNumber(liveStats?.activeUsers || 0) + "+",
+      label: "Active Players",
+      subtext: `${formatNumber(liveStats?.totalUsers || 0)} total`
+    },
+    {
+      value: formatCurrency(liveStats?.totalPrizePool || 0),
+      label: "Prize Pool",
+      subtext: `${liveStats?.activeRaffles || 0} active raffles`
+    },
+    { value: "24/7", label: "Live Games", subtext: "Always available" },
+    { value: "5 Min", label: "Quick Plays", subtext: "Fast rewards" }
   ];
 
   return (
@@ -168,9 +230,11 @@ export default function LandingPage() {
                   <ArrowRight className="w-5 h-5" />
                 </motion.button>
               </Link>
-              <button className="px-8 py-4 bg-white/10 border border-white/20 rounded-xl font-bold text-lg hover:bg-white/20 transition-colors">
-                View Leaderboard
-              </button>
+              <Link to="/leaderboard">
+                <button className="px-8 py-4 bg-white/10 border border-white/20 rounded-xl font-bold text-lg hover:bg-white/20 transition-colors">
+                  View Leaderboard
+                </button>
+              </Link>
             </div>
 
             {/* Live stats */}
@@ -185,6 +249,9 @@ export default function LandingPage() {
                 >
                   <p className="text-2xl font-bold text-white">{stat.value}</p>
                   <p className="text-sm text-gray-400">{stat.label}</p>
+                  {stat.subtext && (
+                    <p className="text-xs text-gray-500 mt-1">{stat.subtext}</p>
+                  )}
                 </motion.div>
               ))}
             </div>
@@ -238,7 +305,7 @@ export default function LandingPage() {
                 transition={{ delay: index * 0.2 }}
                 className="relative"
               >
-                <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur border border-white/10 rounded-2xl p-6 hover:border-purple-500/50 transition-colors">
+                <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur border border-white/10 rounded-2xl p-6 hover:border-purple-500/50 transition-colors h-full">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-4xl font-bold text-purple-400/30">{item.step}</span>
                     <item.icon className="w-8 h-8 text-purple-400" />
@@ -371,9 +438,11 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <button className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl font-bold hover:shadow-lg hover:shadow-orange-500/25 transition-shadow">
-                  Learn About Creator Rewards
-                </button>
+                <Link to="/creator-rewards">
+                  <button className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl font-bold hover:shadow-lg hover:shadow-orange-500/25 transition-shadow">
+                    Learn About Creator Rewards
+                  </button>
+                </Link>
               </div>
               <div className="relative">
                 <div className="relative w-full h-64 md:h-96 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center">

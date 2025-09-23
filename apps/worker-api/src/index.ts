@@ -6,13 +6,14 @@ import { questRouter } from './routes/quests';
 import { raffleRouter } from './routes/raffles';
 import { storeRouter } from './routes/store';
 import { adminRouter } from './routes/admin';
+import { publicRouter } from './routes/public';
 import { RaffleDO } from './durable-objects/RaffleDO';
 import type { Env } from './types';
 
 const app = new Hono<{ Bindings: Env }>();
 
 app.use('*', cors({
-  origin: ['http://localhost:5173', 'https://raffle-arcade.pages.dev'],
+  origin: ['http://localhost:5173', 'https://raffle-arcade.pages.dev', 'https://somethingnew.pages.dev'],
   credentials: true
 }));
 
@@ -34,6 +35,7 @@ app.route('/quests', questRouter);
 app.route('/raffles', raffleRouter);
 app.route('/storefront', storeRouter);
 app.route('/admin', adminRouter);
+app.route('/public', publicRouter);
 
 app.onError((err, c) => {
   console.error(`Error: ${err.message}`, err.stack);

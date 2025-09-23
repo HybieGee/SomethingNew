@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { RegisterSchema, LoginSchema, generateId, GAME_CONFIG } from '../shared';
+import { RegisterSchema, LoginSchema, generateId, GAME_CONFIG } from '../shared/index';
 import type { Env } from '../types';
 
 async function hashPassword(password: string): Promise<string> {

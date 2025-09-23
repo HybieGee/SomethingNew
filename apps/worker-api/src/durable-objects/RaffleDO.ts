@@ -1,4 +1,4 @@
-import { calculateRaffleWinners } from './shared';
+import { calculateRaffleWinners } from '../shared/index';
 
 export class RaffleDO {
   private state: DurableObjectState;
@@ -58,7 +58,7 @@ export class RaffleDO {
           return new Response(JSON.stringify({ error: 'No entries' }), { status: 400 });
         }
 
-        const winners = calculateRaffleWinners(entries, winnerCount, serverSeed, raffleId);
+        const winners = await calculateRaffleWinners(entries, winnerCount, serverSeed, raffleId);
 
         await this.env.DB.prepare(`
           UPDATE raffles
