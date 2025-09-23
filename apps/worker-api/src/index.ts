@@ -15,10 +15,13 @@ const app = new Hono<{ Bindings: Env }>();
 app.use('*', cors({
   origin: (origin) => {
     // Allow any localhost or pages.dev domain
-    if (!origin) return true;
-    return origin.includes('localhost') ||
-           origin.includes('pages.dev') ||
-           origin.includes('127.0.0.1');
+    if (!origin) return '*';
+    if (origin.includes('localhost') ||
+        origin.includes('pages.dev') ||
+        origin.includes('127.0.0.1')) {
+      return origin;
+    }
+    return false;
   },
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
