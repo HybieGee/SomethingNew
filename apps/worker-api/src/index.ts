@@ -13,8 +13,16 @@ import type { Env } from './types';
 const app = new Hono<{ Bindings: Env }>();
 
 app.use('*', cors({
-  origin: ['http://localhost:5173', 'https://raffle-arcade.pages.dev', 'https://somethingnew.pages.dev'],
-  credentials: true
+  origin: (origin) => {
+    // Allow any localhost or pages.dev domain
+    if (!origin) return true;
+    return origin.includes('localhost') ||
+           origin.includes('pages.dev') ||
+           origin.includes('127.0.0.1');
+  },
+  credentials: true,
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use('*', async (c, next) => {

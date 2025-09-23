@@ -48,19 +48,17 @@ authRouter.post('/register', async (c) => {
       { expirationTtl: GAME_CONFIG.SESSION_DURATION / 1000 }
     );
 
-    c.cookie('session', sessionId, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'Lax',
-      maxAge: GAME_CONFIG.SESSION_DURATION / 1000
-    });
-
-    return c.json({
+    const response = c.json({
       success: true,
       userId,
       username: data.username,
-      tickets: GAME_CONFIG.INITIAL_TICKETS
+      tickets: GAME_CONFIG.INITIAL_TICKETS,
+      sessionId
     });
+
+    response.headers.set('Set-Cookie', `session=${sessionId}; HttpOnly; Secure; SameSite=Lax; Max-Age=${GAME_CONFIG.SESSION_DURATION / 1000}; Path=/`);
+
+    return response;
   } catch (error: any) {
     return c.json({ error: error.message }, 400);
   }
@@ -99,20 +97,18 @@ authRouter.post('/login', async (c) => {
       'UPDATE users SET last_login_at = datetime("now") WHERE id = ?'
     ).bind(user.id).run();
 
-    c.cookie('session', sessionId, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'Lax',
-      maxAge: GAME_CONFIG.SESSION_DURATION / 1000
-    });
-
-    return c.json({
+    const response = c.json({
       success: true,
       userId: user.id,
       username: user.username,
       tickets: user.tickets,
-      streakDays: user.streak_days
+      streakDays: user.streak_days,
+      sessionId
     });
+
+    response.headers.set('Set-Cookie', `session=${sessionId}; HttpOnly; Secure; SameSite=Lax; Max-Age=${GAME_CONFIG.SESSION_DURATION / 1000}; Path=/`);
+
+    return response;
   } catch (error: any) {
     return c.json({ error: error.message }, 400);
   }
@@ -125,12 +121,8 @@ authRouter.post('/logout', async (c) => {
     await c.env.CACHE.delete(`session:${sessionCookie}`);
   }
 
-  c.cookie('session', '', {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'Lax',
-    maxAge: 0
-  });
+  const response = c.json({ success: true });
+  response.headers.set('Set-Cookie', `session=; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/`);
 
-  return c.json({ success: true });
+  return response;
 });

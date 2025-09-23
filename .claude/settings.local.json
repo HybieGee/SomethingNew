@@ -18,7 +18,8 @@
       "Bash(wrangler d1 execute:*)",
       "Bash(wrangler secret put:*)",
       "Bash(wrangler deploy:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

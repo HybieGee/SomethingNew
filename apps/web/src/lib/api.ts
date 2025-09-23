@@ -1,6 +1,7 @@
-const API_URL = typeof window !== 'undefined' && window.location.hostname.includes('pages.dev')
+const API_URL = typeof window !== 'undefined' &&
+  (window.location.hostname.includes('pages.dev') || window.location.hostname.includes('cloudflare'))
   ? 'https://raffle-arcade-api.claudechaindev.workers.dev'
-  : '/api';
+  : 'https://raffle-arcade-api.claudechaindev.workers.dev'; // Always use the deployed API for now
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
