@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
-import { Shield, DollarSign, Zap, ChartBar } from 'lucide-react';
+import { Shield, DollarSign, Zap, BarChart3 } from 'lucide-react';
 
 export default function AdminPage() {
   const [adminToken, setAdminToken] = useState('');
@@ -103,7 +103,7 @@ export default function AdminPage() {
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           <div className="bg-arcade-dark/50 border border-white/10 rounded-lg p-4">
-            <ChartBar className="text-arcade-blue mb-2" size={20} />
+            <BarChart3 className="text-arcade-blue mb-2" size={20} />
             <p className="text-2xl font-bold">{stats.stats.totalUsers}</p>
             <p className="text-sm text-gray-400">Total Users</p>
           </div>

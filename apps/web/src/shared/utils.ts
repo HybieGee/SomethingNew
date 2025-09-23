@@ -1,15 +1,25 @@
-import crypto from 'crypto';
-
 export function generateId(): string {
-  return crypto.randomBytes(16).toString('hex');
+  return Array.from(crypto.getRandomValues(new Uint8Array(16)))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 export function generateRecoveryCode(): string {
-  return crypto.randomBytes(32).toString('base64url');
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
 }
 
 export function hashString(str: string, salt: string): string {
-  return crypto.createHash('sha256').update(str + salt).digest('hex');
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str + salt);
+  return crypto.subtle.digest('SHA-256', data).then(buffer => {
+    return Array.from(new Uint8Array(buffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+  }) as any;
 }
 
 export function calculateStreakBonus(days: number): number {
@@ -24,8 +34,13 @@ export function isWithinTimeWindow(startTime: string, endTime: string): boolean 
 }
 
 export function determinicRandom(seed: string): number {
-  const hash = crypto.createHash('sha256').update(seed).digest();
-  return hash.readUInt32BE(0) / 0xFFFFFFFF;
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    const char = seed.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash) / 2147483647;
 }
 
 export function shuffleArray<T>(array: T[], seed: string): T[] {

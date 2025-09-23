@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.PROD
+const API_URL = typeof window !== 'undefined' && window.location.hostname.includes('pages.dev')
   ? 'https://raffle-arcade-api.workers.dev'
   : '/api';
 
