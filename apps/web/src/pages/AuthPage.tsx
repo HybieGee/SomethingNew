@@ -147,6 +147,7 @@ export default function AuthPage() {
           </form>
         </div>
       </motion.div>
+      </div>
     </div>
   );
 }
