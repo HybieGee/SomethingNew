@@ -1,7 +1,15 @@
 import { Hono } from 'hono';
-import { RegisterSchema, LoginSchema } from '@raffle-arcade/shared';
-import { generateId, generateRecoveryCode, GAME_CONFIG } from '@raffle-arcade/shared';
+import { RegisterSchema, LoginSchema, generateId, GAME_CONFIG } from '../shared';
 import type { Env } from '../types';
+
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 export const authRouter = new Hono<{ Bindings: Env }>();
 
@@ -19,18 +27,18 @@ authRouter.post('/register', async (c) => {
     }
 
     const userId = generateId();
-    const recoveryCode = generateRecoveryCode();
+    const passwordHash = await hashPassword(data.password);
     const sessionId = generateId();
 
     await c.env.DB.prepare(`
-      INSERT INTO users (id, username, solana_address, tickets, recovery_code)
+      INSERT INTO users (id, username, password_hash, solana_address, tickets)
       VALUES (?, ?, ?, ?, ?)
     `).bind(
       userId,
       data.username,
+      passwordHash,
       data.solanaAddress,
-      GAME_CONFIG.INITIAL_TICKETS,
-      recoveryCode
+      GAME_CONFIG.INITIAL_TICKETS
     ).run();
 
     const sessionData = { id: userId, username: data.username };
@@ -51,7 +59,6 @@ authRouter.post('/register', async (c) => {
       success: true,
       userId,
       username: data.username,
-      recoveryCode,
       tickets: GAME_CONFIG.INITIAL_TICKETS
     });
   } catch (error: any) {
@@ -65,12 +72,17 @@ authRouter.post('/login', async (c) => {
     const data = LoginSchema.parse(body);
 
     const user = await c.env.DB.prepare(`
-      SELECT id, username, tickets, streak_days
+      SELECT id, username, password_hash, tickets, streak_days
       FROM users
-      WHERE username = ? AND recovery_code = ?
-    `).bind(data.username, data.recoveryCode).first();
+      WHERE username = ?
+    `).bind(data.username).first();
 
     if (!user) {
+      return c.json({ error: 'Invalid credentials' }, 401);
+    }
+
+    const passwordHash = await hashPassword(data.password);
+    if (passwordHash !== user.password_hash) {
       return c.json({ error: 'Invalid credentials' }, 401);
     }
 

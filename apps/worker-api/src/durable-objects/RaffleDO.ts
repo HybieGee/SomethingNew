@@ -1,4 +1,4 @@
-import { calculateRaffleWinners } from '@raffle-arcade/shared';
+import { calculateRaffleWinners } from './shared';
 
 export class RaffleDO {
   private state: DurableObjectState;

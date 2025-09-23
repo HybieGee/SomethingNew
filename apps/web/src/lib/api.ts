@@ -29,12 +29,12 @@ async function fetchApi(endpoint: string, options?: RequestInit) {
 
 export const api = {
   auth: {
-    register: (data: { username: string; solanaAddress: string }) =>
+    register: (data: { username: string; password: string; solanaAddress: string }) =>
       fetchApi('/auth/register', {
         method: 'POST',
         body: JSON.stringify(data),
       }),
-    login: (data: { username: string; recoveryCode: string }) =>
+    login: (data: { username: string; password: string }) =>
       fetchApi('/auth/login', {
         method: 'POST',
         body: JSON.stringify(data),

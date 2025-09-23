@@ -7,9 +7,8 @@ import { User, Key, Wallet } from 'lucide-react';
 export default function AuthPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [username, setUsername] = useState('');
-  const [recoveryCode, setRecoveryCode] = useState('');
+  const [password, setPassword] = useState('');
   const [solanaAddress, setSolanaAddress] = useState('');
-  const [savedRecoveryCode, setSavedRecoveryCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const { login, register } = useAuthStore();
@@ -20,12 +19,10 @@ export default function AuthPage() {
 
     try {
       if (mode === 'login') {
-        await login(username, recoveryCode);
+        await login(username, password);
         toast.success('Welcome back!');
       } else {
-        await register(username, solanaAddress);
-        const newRecoveryCode = useAuthStore.getState().recoveryCode;
-        setSavedRecoveryCode(newRecoveryCode);
+        await register(username, password, solanaAddress);
         toast.success('Account created successfully!');
       }
     } catch (error: any) {
@@ -93,22 +90,22 @@ export default function AuthPage() {
               </div>
             </div>
 
-            {mode === 'login' ? (
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">Recovery Code</label>
-                <div className="relative">
-                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <input
-                    type="text"
-                    value={recoveryCode}
-                    onChange={(e) => setRecoveryCode(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-arcade-purple"
-                    placeholder="Enter recovery code"
-                    required
-                  />
-                </div>
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Password</label>
+              <div className="relative">
+                <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-3 focus:outline-none focus:border-arcade-purple"
+                  placeholder="Enter password"
+                  required
+                />
               </div>
-            ) : (
+            </div>
+
+            {mode === 'register' && (
               <div>
                 <label className="block text-sm text-gray-400 mb-2">Solana Address</label>
                 <div className="relative">
@@ -133,19 +130,6 @@ export default function AuthPage() {
               {loading ? 'Loading...' : mode === 'login' ? 'Login' : 'Create Account'}
             </button>
           </form>
-
-          {savedRecoveryCode && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-6 p-4 bg-arcade-green/20 border border-arcade-green/50 rounded-lg"
-            >
-              <p className="text-sm text-arcade-green font-bold mb-2">Save Your Recovery Code!</p>
-              <code className="block p-2 bg-black/30 rounded text-xs break-all">
-                {savedRecoveryCode}
-              </code>
-            </motion.div>
-          )}
         </div>
       </motion.div>
     </div>

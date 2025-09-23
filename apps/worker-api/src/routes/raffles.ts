@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
-import { EnterRaffleSchema } from '@raffle-arcade/shared';
+import { EnterRaffleSchema } from './shared';
 import type { Env } from '../types';
 
 export const raffleRouter = new Hono<{ Bindings: Env }>();

@@ -2,11 +2,11 @@
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   username TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
   solana_address TEXT NOT NULL,
   tickets INTEGER DEFAULT 100,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   last_login_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  recovery_code TEXT NOT NULL,
   streak_days INTEGER DEFAULT 0,
   last_daily_claim_at DATETIME
 );

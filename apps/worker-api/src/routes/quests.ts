@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
-import { CompleteQuestSchema, GAME_CONFIG } from '@raffle-arcade/shared';
+import { CompleteQuestSchema, GAME_CONFIG } from './shared';
 import type { Env } from '../types';
 
 export const questRouter = new Hono<{ Bindings: Env }>();

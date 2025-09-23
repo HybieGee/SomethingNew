@@ -8,11 +8,11 @@ vars = { ENVIRONMENT = "production" }
 [[d1_databases]]
 binding = "DB"
 database_name = "raffle-arcade"
-database_id = "YOUR_DATABASE_ID"
+database_id = "ed07c670-2cf3-4aa4-a3f5-74ccba4e30c9"
 
 [[kv_namespaces]]
 binding = "CACHE"
-id = "YOUR_KV_NAMESPACE_ID"
+id = "2995cb5762b4480982d6d1ce2c881dac"
 
 [[r2_buckets]]
 binding = "ASSETS"

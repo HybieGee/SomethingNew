@@ -11,10 +11,9 @@ interface User {
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  recoveryCode: string | null;
 
-  login: (username: string, recoveryCode: string) => Promise<void>;
-  register: (username: string, solanaAddress: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
+  register: (username: string, password: string, solanaAddress: string) => Promise<void>;
   logout: () => Promise<void>;
   updateTickets: (tickets: number) => void;
 }
@@ -22,10 +21,9 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
-  recoveryCode: null,
 
-  login: async (username, recoveryCode) => {
-    const data = await api.auth.login({ username, recoveryCode });
+  login: async (username, password) => {
+    const data = await api.auth.login({ username, password });
     set({
       user: {
         id: data.userId,
@@ -37,8 +35,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 
-  register: async (username, solanaAddress) => {
-    const data = await api.auth.register({ username, solanaAddress });
+  register: async (username, password, solanaAddress) => {
+    const data = await api.auth.register({ username, password, solanaAddress });
     set({
       user: {
         id: data.userId,
@@ -47,7 +45,6 @@ export const useAuthStore = create<AuthState>((set) => ({
         streakDays: 0,
       },
       isAuthenticated: true,
-      recoveryCode: data.recoveryCode,
     });
   },
 

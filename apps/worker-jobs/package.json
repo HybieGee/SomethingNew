@@ -8,7 +8,7 @@
     "build": "esbuild src/index.ts --bundle --outdir=dist --platform=neutral --format=esm"
   },
   "dependencies": {
-    "@raffle-arcade/shared": "workspace:*"
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.0.0",

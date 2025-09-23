@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
-import { PurchaseItemSchema } from '@raffle-arcade/shared';
+import { PurchaseItemSchema } from './shared';
 import type { Env } from '../types';
 
 export const storeRouter = new Hono<{ Bindings: Env }>();

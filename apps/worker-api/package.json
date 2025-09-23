@@ -8,7 +8,6 @@
     "build": "esbuild src/index.ts --bundle --outdir=dist --platform=neutral --format=esm"
   },
   "dependencies": {
-    "@raffle-arcade/shared": "workspace:*",
     "hono": "^4.0.0",
     "zod": "^3.22.0"
   },

@@ -1,4 +1,4 @@
-import { generateId } from '@raffle-arcade/shared';
+import { generateId } from './shared';
 
 interface Env {
   DB: D1Database;
