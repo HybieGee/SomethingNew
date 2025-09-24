@@ -46,7 +46,7 @@ export default function QuestsPage() {
     retry: 3,
     retryDelay: 1000,
     staleTime: 0, // Force fresh requests
-    cacheTime: 0, // Don't cache responses
+    gcTime: 0, // Don't cache responses (was cacheTime in older versions)
     refetchOnMount: 'always', // Always refetch when component mounts
     refetchOnWindowFocus: true, // Refetch when window regains focus
   });
@@ -322,7 +322,7 @@ export default function QuestsPage() {
   }
 
   // Show no quests state
-  if (!quests?.quests || quests.quests.length === 0) {
+  if (!quests?.quests || (quests as any)?.quests?.length === 0) {
     return (
       <div className="space-y-6">
         <div className="text-center mb-8">
@@ -378,7 +378,7 @@ export default function QuestsPage() {
       )}
 
       <div className="grid gap-6">
-        {quests?.quests.map((quest: any) => (
+        {(quests as any)?.quests?.map((quest: any) => (
           <motion.div
             key={quest.id}
             initial={{ opacity: 0, x: -20 }}
