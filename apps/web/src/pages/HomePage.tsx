@@ -1,10 +1,19 @@
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
-import { Gift, Sparkles, Trophy, Timer, TrendingUp, Shield } from 'lucide-react';
+import { Gift, Sparkles, Trophy, Timer, TrendingUp, Shield, type LucideIcon } from 'lucide-react';
+
+type StatItem = {
+  label: string;
+  value: number;
+  color: string;
+  icon: LucideIcon | string;
+  isImage?: boolean;
+};
 
 export default function HomePage() {
   const user = useAuthStore((state) => state.user);
@@ -39,7 +48,7 @@ export default function HomePage() {
     }
   };
 
-  const quickStats = [
+  const quickStats: StatItem[] = [
     { label: 'Total Tickets', value: user?.tickets || 0, icon: '/assets/icons/TotalTicketsIcon.png', isImage: true, color: 'text-arcade-yellow' },
     { label: 'Streak Days', value: user?.streakDays || 0, icon: TrendingUp, color: 'text-arcade-green' },
     { label: 'Badges', value: profile?.profile?.badge_count || 0, icon: Sparkles, color: 'text-arcade-purple' },
@@ -100,9 +109,12 @@ export default function HomePage() {
               className="bg-arcade-dark/50 backdrop-blur border border-white/10 rounded-lg p-4"
             >
               {stat.isImage ? (
-                <img src={stat.icon} alt={stat.label} className="w-6 h-6 mb-2" />
+                <img src={stat.icon as string} alt={stat.label} className="w-6 h-6 mb-2" />
               ) : (
-                <stat.icon className={`${stat.color} mb-2`} size={24} />
+                React.createElement(stat.icon as LucideIcon, {
+                  className: `${stat.color} mb-2`,
+                  size: 24
+                })
               )}
               <p className="text-2xl font-bold">{stat.value.toLocaleString()}</p>
               <p className="text-sm text-gray-400">{stat.label}</p>
