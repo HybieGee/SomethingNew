@@ -40,7 +40,7 @@ export default function HomePage() {
   };
 
   const quickStats = [
-    { label: 'Total Tickets', value: user?.tickets || 0, icon: Trophy, color: 'text-arcade-yellow' },
+    { label: 'Total Tickets', value: user?.tickets || 0, icon: '/assets/icons/TotalTicketsIcon.png', isImage: true, color: 'text-arcade-yellow' },
     { label: 'Streak Days', value: user?.streakDays || 0, icon: TrendingUp, color: 'text-arcade-green' },
     { label: 'Badges', value: profile?.profile?.badge_count || 0, icon: Sparkles, color: 'text-arcade-purple' },
     { label: 'Quests Today', value: profile?.profile?.quests_today || 0, icon: Timer, color: 'text-arcade-blue' },
@@ -91,7 +91,6 @@ export default function HomePage() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {quickStats.map((stat, index) => {
-          const Icon = stat.icon;
           return (
             <motion.div
               key={stat.label}
@@ -100,7 +99,11 @@ export default function HomePage() {
               transition={{ delay: index * 0.1 }}
               className="bg-arcade-dark/50 backdrop-blur border border-white/10 rounded-lg p-4"
             >
-              <Icon className={`${stat.color} mb-2`} size={24} />
+              {stat.isImage ? (
+                <img src={stat.icon} alt={stat.label} className="w-6 h-6 mb-2" />
+              ) : (
+                <stat.icon className={`${stat.color} mb-2`} size={24} />
+              )}
               <p className="text-2xl font-bold">{stat.value.toLocaleString()}</p>
               <p className="text-sm text-gray-400">{stat.label}</p>
             </motion.div>
@@ -134,7 +137,7 @@ export default function HomePage() {
             whileHover={{ scale: 1.02 }}
             className="bg-arcade-dark/50 backdrop-blur border border-arcade-pink/50 rounded-lg p-6 hover:border-arcade-pink transition-colors"
           >
-            <Gift className="text-arcade-pink mb-3" size={32} />
+            <img src="/assets/icons/LiveRaffle.png" alt="Live Raffles" className="w-8 h-8 mb-3" />
             <h3 className="text-xl font-bold mb-2">Live Raffles</h3>
             <p className="text-gray-400">Enter to win big prizes</p>
           </motion.div>

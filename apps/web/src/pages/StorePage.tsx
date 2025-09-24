@@ -11,6 +11,14 @@ const typeIcons = {
   cosmetic: Palette,
 };
 
+// Custom icons for specific store items
+const customItemIcons: Record<string, string> = {
+  'rainbow_badge': '/assets/icons/Rainbow Badge.png',
+  'skip_cooldown': '/assets/icons/SkipCooldown.png',
+  'double_tickets': '/assets/icons/DoubleTicket.png',
+  'extra_raffle_entry': '/assets/icons/ExtraRaffle.png',
+};
+
 export default function StorePage() {
   const user = useAuthStore((state) => state.user);
   const updateTickets = useAuthStore((state) => state.updateTickets);
@@ -66,6 +74,13 @@ export default function StorePage() {
                   whileHover={{ scale: 1.02 }}
                   className="bg-arcade-dark/50 backdrop-blur border border-white/10 rounded-lg p-4"
                 >
+                  {customItemIcons[item.slug] && (
+                    <img
+                      src={customItemIcons[item.slug]}
+                      alt={item.name}
+                      className="w-12 h-12 mb-3"
+                    />
+                  )}
                   <h3 className="font-bold mb-1">{item.name}</h3>
                   <p className="text-sm text-gray-400 mb-3">{item.description}</p>
 

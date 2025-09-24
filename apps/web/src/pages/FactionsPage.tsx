@@ -5,6 +5,14 @@ import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { Shield, Users, Zap } from 'lucide-react';
 
+// Faction icon mapping
+const factionIcons: Record<string, string> = {
+  'BONK': '/assets/icons/BonkFaction.png',
+  'BSC': '/assets/icons/BSCFaction.png',
+  'PUMP': '/assets/icons/PumpFaction.png',
+  'USD1': '/assets/icons/USD1Faction.png',
+};
+
 interface Faction {
   id: string;
   name: string;
@@ -108,12 +116,20 @@ export default function FactionsPage() {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div
-                className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl"
-                style={{ backgroundColor: currentFaction.color }}
-              >
-                {currentFaction.symbol}
-              </div>
+              {factionIcons[currentFaction.symbol] ? (
+                <img
+                  src={factionIcons[currentFaction.symbol]}
+                  alt={currentFaction.name}
+                  className="w-12 h-12 rounded-lg object-contain"
+                />
+              ) : (
+                <div
+                  className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-xl"
+                  style={{ backgroundColor: currentFaction.color }}
+                >
+                  {currentFaction.symbol}
+                </div>
+              )}
               <div>
                 <h3 className="text-xl font-bold text-white">{currentFaction.name}</h3>
                 <p className="text-gray-400">{currentFaction.description}</p>
@@ -151,12 +167,20 @@ export default function FactionsPage() {
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <div
-                  className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-2xl"
-                  style={{ backgroundColor: faction.color }}
-                >
-                  {faction.symbol}
-                </div>
+                {factionIcons[faction.symbol] ? (
+                  <img
+                    src={factionIcons[faction.symbol]}
+                    alt={faction.name}
+                    className="w-16 h-16 rounded-lg object-contain"
+                  />
+                ) : (
+                  <div
+                    className="w-16 h-16 rounded-lg flex items-center justify-center text-white font-bold text-2xl"
+                    style={{ backgroundColor: faction.color }}
+                  >
+                    {faction.symbol}
+                  </div>
+                )}
                 <div>
                   <h3 className="text-xl font-bold text-white">{faction.name}</h3>
                   <p className="text-arcade-yellow font-semibold">
