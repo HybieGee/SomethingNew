@@ -10,13 +10,13 @@ seedRouter.post('/quests', async (c) => {
     const quests = [
       {
         id: generateId(),
-        slug: 'daily_login',
-        title: 'Daily Login Bonus',
-        description: 'Claim your daily reward and build your streak!',
-        type: 'tap_challenge',
-        min_reward: 50,
-        max_reward: 100,
-        cooldown_minutes: 1440, // 24 hours
+        slug: 'solana_prediction',
+        title: 'Solana Price Prediction',
+        description: 'Predict if SOL will go up or down in the next hour!',
+        type: 'up_down_call',
+        min_reward: 20,
+        max_reward: 80,
+        cooldown_minutes: 60, // 1 hour
         active: true
       },
       {
@@ -32,24 +32,13 @@ seedRouter.post('/quests', async (c) => {
       },
       {
         id: generateId(),
-        slug: 'price_prediction',
-        title: 'Price Prediction',
-        description: 'Predict if the crypto price will go up or down in 60 seconds',
-        type: 'up_down_call',
-        min_reward: 10,
-        max_reward: 50,
-        cooldown_minutes: 120, // 2 hours
-        active: true
-      },
-      {
-        id: generateId(),
-        slug: 'crypto_trivia',
-        title: 'Crypto Trivia',
-        description: 'Answer 5 questions about cryptocurrency and blockchain',
+        slug: 'memecoin_trivia',
+        title: 'Memecoin Trivia',
+        description: 'Test your knowledge of memecoins! Answer 5 questions correctly',
         type: 'trivia',
         min_reward: 15,
         max_reward: 40,
-        cooldown_minutes: 180, // 3 hours
+        cooldown_minutes: 120, // 2 hours
         active: true
       }
     ];

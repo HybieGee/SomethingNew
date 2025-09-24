@@ -54,16 +54,16 @@ profileRouter.post('/me/daily', authMiddleware, async (c) => {
       return c.json({ error: 'User not found' }, 404);
     }
 
-    // Check if already claimed today (20 hour cooldown)
+    // Check if already claimed today (24 hour cooldown)
     if (userInfo.last_daily_claim_at) {
       const lastClaim = new Date(userInfo.last_daily_claim_at);
       const now = new Date();
       const hoursSinceLastClaim = (now.getTime() - lastClaim.getTime()) / (1000 * 60 * 60);
 
-      if (hoursSinceLastClaim < 20) {
+      if (hoursSinceLastClaim < 24) {
         return c.json({
-          error: 'Already claimed today',
-          nextClaimIn: Math.ceil(20 - hoursSinceLastClaim)
+          error: `Already claimed today. Next claim in ${Math.ceil(24 - hoursSinceLastClaim)} hours`,
+          nextClaimIn: Math.ceil(24 - hoursSinceLastClaim)
         }, 429);
       }
     }

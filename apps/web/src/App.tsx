@@ -19,11 +19,9 @@ function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
 
   useEffect(() => {
-    // Check if user is authenticated on app load
-    if (isAuthenticated) {
-      checkAuth();
-    }
-  }, []);
+    // Always check if user is authenticated on app load
+    checkAuth();
+  }, [checkAuth]);
 
   return (
     <Routes>

@@ -28,10 +28,13 @@ export default function HomePage() {
       toast.success(`Claimed ${result.reward} tickets! Streak: ${result.streakDays} days`);
       refetch();
     } catch (error: any) {
-      if (error.status === 429) {
-        toast.error(`Already claimed! Next claim in ${error.message.nextClaimIn} hours`);
+      if (error.message && error.message.includes('Already claimed')) {
+        // Extract hours from error message if available, otherwise default to 20
+        const hoursMatch = error.message.match(/(\d+)/);
+        const hours = hoursMatch ? hoursMatch[1] : '20';
+        toast.error(`Already claimed! Next claim in ${hours} hours`);
       } else {
-        toast.error(error.message);
+        toast.error(error.message || 'Failed to claim daily reward');
       }
     }
   };

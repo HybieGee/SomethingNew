@@ -1,16 +1,31 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
-import { Sparkles, Timer, TrendingUp, TrendingDown, Hash } from 'lucide-react';
+import { Sparkles, Timer, TrendingUp, TrendingDown, Brain, MousePointer, CheckCircle, XCircle } from 'lucide-react';
+
+interface TriviaQuestion {
+  id: number;
+  question: string;
+  options: string[];
+}
 
 export default function QuestsPage() {
+  const queryClient = useQueryClient();
   const updateTickets = useAuthStore((state) => state.updateTickets);
   const [tapCount, setTapCount] = useState(0);
   const [tapping, setTapping] = useState(false);
-  const [prediction, setPrediction] = useState<'up' | 'down' | null>(null);
+  const [activeQuestSlug, setActiveQuestSlug] = useState<string | null>(null);
+
+  // Trivia state
+  const [triviaSession, setTriviaSession] = useState<{
+    sessionId: string;
+    questions: TriviaQuestion[];
+    answers: number[];
+    currentQuestion: number;
+  } | null>(null);
 
   const { data: quests, refetch } = useQuery({
     queryKey: ['quests'],
@@ -18,40 +33,130 @@ export default function QuestsPage() {
     refetchInterval: 10000,
   });
 
-  const handleUpDownCall = async (questSlug: string, choice: 'up' | 'down') => {
-    setPrediction(choice);
+  const handleSolanaPrediction = async (questSlug: string, choice: 'up' | 'down') => {
     try {
       const result = await api.quests.complete({ questSlug, choice });
-      toast.info('Prediction recorded! Check back in 60 seconds for results.');
-      setTimeout(() => {
-        refetch();
-        setPrediction(null);
-      }, 60000);
-    } catch (error: any) {
-      toast.error(error.message);
-      setPrediction(null);
-    }
-  };
-
-  const handleTapChallenge = async (questSlug: string) => {
-    setTapping(true);
-    setTapCount(0);
-
-    const interval = setInterval(() => {
-      setTapCount(0);
-      setTapping(false);
-      clearInterval(interval);
-    }, 10000);
-  };
-
-  const submitTapScore = async (questSlug: string) => {
-    try {
-      const result = await api.quests.complete({ questSlug, score: tapCount });
-      updateTickets((result as any).newTickets);
-      toast.success(`Earned ${result.reward} tickets! Score: ${tapCount}`);
+      toast.info(result.message || 'Prediction recorded! Check back in 1 hour for results.');
       refetch();
     } catch (error: any) {
       toast.error(error.message);
+    }
+  };
+
+  const handleCheckPrediction = async (questSlug: string) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://raffle-arcade-api.claudechaindev.workers.dev'}/quests/prediction/check?quest=${questSlug}`, {
+        credentials: 'include'
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(result.message);
+        updateTickets(result.newTickets);
+      } else {
+        toast.info(result.message);
+      }
+      refetch();
+    } catch (error: any) {
+      toast.error('Failed to check prediction');
+    }
+  };
+
+  const handleStartTapChallenge = (questSlug: string) => {
+    setActiveQuestSlug(questSlug);
+    setTapping(true);
+    setTapCount(0);
+
+    // 10 second timer
+    setTimeout(() => {
+      setTapping(false);
+      // Auto-submit when timer ends
+      if (tapCount > 0) {
+        submitTapScore(questSlug, tapCount);
+      }
+    }, 10000);
+  };
+
+  const submitTapScore = async (questSlug: string, score: number) => {
+    try {
+      const result = await api.quests.complete({ questSlug, score });
+      updateTickets((result as any).newTickets);
+      toast.success(`Earned ${result.reward} tickets! Score: ${score}`);
+      setTapCount(0);
+      setActiveQuestSlug(null);
+      refetch();
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  const startTrivia = async (questSlug: string) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://raffle-arcade-api.claudechaindev.workers.dev'}/quests/trivia`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+
+      setTriviaSession({
+        sessionId: data.sessionId,
+        questions: data.questions,
+        answers: [],
+        currentQuestion: 0
+      });
+      setActiveQuestSlug(questSlug);
+    } catch (error) {
+      toast.error('Failed to start trivia');
+    }
+  };
+
+  const answerTriviaQuestion = (answerIndex: number) => {
+    if (!triviaSession) return;
+
+    const newAnswers = [...triviaSession.answers, answerIndex];
+
+    if (triviaSession.currentQuestion < triviaSession.questions.length - 1) {
+      // Move to next question
+      setTriviaSession({
+        ...triviaSession,
+        answers: newAnswers,
+        currentQuestion: triviaSession.currentQuestion + 1
+      });
+    } else {
+      // Submit trivia
+      submitTrivia(newAnswers);
+    }
+  };
+
+  const submitTrivia = async (answers: number[]) => {
+    if (!triviaSession || !activeQuestSlug) return;
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://raffle-arcade-api.claudechaindev.workers.dev'}/quests/trivia/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          sessionId: triviaSession.sessionId,
+          answers,
+          questSlug: activeQuestSlug
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(`Scored ${result.correctAnswers}/${result.totalQuestions}! Earned ${result.reward} tickets`);
+        updateTickets(result.newTickets);
+
+        // Show results briefly
+        setTimeout(() => {
+          setTriviaSession(null);
+          setActiveQuestSlug(null);
+          refetch();
+        }, 3000);
+      }
+    } catch (error) {
+      toast.error('Failed to submit trivia');
     }
   };
 
@@ -65,8 +170,35 @@ export default function QuestsPage() {
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-2">Quick Quests</h1>
-        <p className="text-gray-400">Complete challenges every 5-15 minutes!</p>
+        <p className="text-gray-400">Complete challenges to earn tickets!</p>
       </div>
+
+      {/* Trivia Modal */}
+      {triviaSession && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+        >
+          <div className="bg-arcade-dark border border-white/20 rounded-lg p-6 max-w-lg w-full">
+            <h2 className="text-xl font-bold mb-4">
+              Memecoin Trivia - Question {triviaSession.currentQuestion + 1}/{triviaSession.questions.length}
+            </h2>
+            <p className="text-lg mb-6">{triviaSession.questions[triviaSession.currentQuestion].question}</p>
+            <div className="space-y-3">
+              {triviaSession.questions[triviaSession.currentQuestion].options.map((option, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => answerTriviaQuestion(idx)}
+                  className="w-full p-3 text-left rounded-lg bg-arcade-dark/50 border border-white/10 hover:border-arcade-purple transition-colors"
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       <div className="grid gap-6">
         {quests?.quests.map((quest: any) => (
@@ -80,6 +212,16 @@ export default function QuestsPage() {
               <div>
                 <h3 className="text-xl font-bold mb-1">{quest.name}</h3>
                 <p className="text-gray-400 text-sm">{quest.description}</p>
+
+                {/* Show active prediction status */}
+                {quest.activePrediction && (
+                  <div className="mt-2 p-2 bg-arcade-purple/20 rounded">
+                    <p className="text-sm text-arcade-purple">
+                      Active prediction: {quest.activePrediction.prediction.toUpperCase()}
+                      from ${quest.activePrediction.initialPrice.toFixed(2)}
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-arcade-yellow font-bold">
@@ -94,36 +236,50 @@ export default function QuestsPage() {
               </div>
             </div>
 
-            {quest.type === 'up_down_call' && (
-              <div className="flex gap-3">
-                <button
-                  onClick={() => handleUpDownCall(quest.slug, 'up')}
-                  disabled={!quest.available || prediction !== null}
-                  className="flex-1 py-3 rounded-lg bg-arcade-green/20 border border-arcade-green/50 hover:bg-arcade-green/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  <TrendingUp className="inline mr-2" size={18} />
-                  Predict UP
-                </button>
-                <button
-                  onClick={() => handleUpDownCall(quest.slug, 'down')}
-                  disabled={!quest.available || prediction !== null}
-                  className="flex-1 py-3 rounded-lg bg-arcade-red/20 border border-arcade-red/50 hover:bg-arcade-red/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                >
-                  <TrendingDown className="inline mr-2" size={18} />
-                  Predict DOWN
-                </button>
+            {/* Solana Prediction */}
+            {quest.slug === 'solana_prediction' && (
+              <div>
+                {quest.activePrediction ? (
+                  <button
+                    onClick={() => handleCheckPrediction(quest.slug)}
+                    className="w-full py-3 rounded-lg bg-arcade-purple text-white font-bold hover:opacity-90"
+                  >
+                    Check Prediction Result
+                  </button>
+                ) : (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => handleSolanaPrediction(quest.slug, 'up')}
+                      disabled={!quest.available}
+                      className="flex-1 py-3 rounded-lg bg-arcade-green/20 border border-arcade-green/50 hover:bg-arcade-green/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <TrendingUp className="inline mr-2" size={18} />
+                      SOL Goes UP
+                    </button>
+                    <button
+                      onClick={() => handleSolanaPrediction(quest.slug, 'down')}
+                      disabled={!quest.available}
+                      className="flex-1 py-3 rounded-lg bg-arcade-red/20 border border-arcade-red/50 hover:bg-arcade-red/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <TrendingDown className="inline mr-2" size={18} />
+                      SOL Goes DOWN
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
-            {quest.type === 'tap_challenge' && (
+            {/* Tap Challenge */}
+            {quest.slug === 'tap_challenge' && (
               <div>
-                {!tapping ? (
+                {!tapping || activeQuestSlug !== quest.slug ? (
                   <button
-                    onClick={() => handleTapChallenge(quest.slug)}
+                    onClick={() => handleStartTapChallenge(quest.slug)}
                     disabled={!quest.available}
                     className="w-full py-3 rounded-lg arcade-gradient text-white font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
                   >
-                    Start Tapping!
+                    <MousePointer className="inline mr-2" size={18} />
+                    Start Tapping Challenge!
                   </button>
                 ) : (
                   <div className="text-center">
@@ -139,23 +295,18 @@ export default function QuestsPage() {
                     <p className="text-sm text-gray-400">Keep tapping for 10 seconds!</p>
                   </div>
                 )}
-                {tapCount > 0 && !tapping && (
-                  <button
-                    onClick={() => submitTapScore(quest.slug)}
-                    className="w-full py-3 rounded-lg bg-arcade-purple text-white font-bold mt-4"
-                  >
-                    Submit Score: {tapCount}
-                  </button>
-                )}
               </div>
             )}
 
-            {quest.type === 'trivia' && (
+            {/* Memecoin Trivia */}
+            {quest.slug === 'memecoin_trivia' && (
               <button
+                onClick={() => startTrivia(quest.slug)}
                 disabled={!quest.available}
                 className="w-full py-3 rounded-lg arcade-gradient text-white font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
               >
-                Start Trivia
+                <Brain className="inline mr-2" size={18} />
+                Start Memecoin Trivia
               </button>
             )}
           </motion.div>
