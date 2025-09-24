@@ -1,11 +1,17 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
-import { EnterRaffleSchema } from '../shared/index';
+import { EnterRaffleSchema, generateId } from '../shared/index';
 import type { Env } from '../types';
 
 export const raffleRouter = new Hono<{ Bindings: Env }>();
 
 raffleRouter.get('/next', async (c) => {
+  // First, handle expired raffles
+  await handleExpiredRaffles(c.env);
+
+  // Ensure we have active raffles
+  await ensureActiveRaffles(c.env);
+
   const raffles = await c.env.DB.prepare(`
     SELECT * FROM raffles
     WHERE status IN ('upcoming', 'active')
@@ -21,11 +27,13 @@ raffleRouter.get('/next', async (c) => {
         WHERE raffle_id = ?
       `).bind(raffle.id).first();
 
+      const timeRemaining = new Date(raffle.end_time).getTime() - Date.now();
+
       return {
         ...raffle,
         entryCount: entries?.entry_count || 0,
         totalTickets: entries?.total_tickets || 0,
-        timeRemaining: new Date(raffle.end_time).getTime() - Date.now()
+        timeRemaining: Math.max(0, timeRemaining)
       };
     })
   );
@@ -163,3 +171,122 @@ raffleRouter.get('/:id', async (c) => {
     winners
   });
 });
+
+async function handleExpiredRaffles(env: Env) {
+  const expiredRaffles = await env.DB.prepare(`
+    SELECT * FROM raffles
+    WHERE status = 'active' AND end_time < datetime('now')
+  `).all();
+
+  for (const raffle of expiredRaffles.results) {
+    await processRaffleWinner(env, raffle);
+  }
+}
+
+async function processRaffleWinner(env: Env, raffle: any) {
+  // Get all entries for this raffle
+  const entries = await env.DB.prepare(`
+    SELECT user_id, ticket_count FROM raffle_entries
+    WHERE raffle_id = ?
+  `).bind(raffle.id).all();
+
+  if (entries.results.length === 0) {
+    // No entries, mark as completed
+    await env.DB.prepare(`
+      UPDATE raffles SET status = 'completed' WHERE id = ?
+    `).bind(raffle.id).run();
+    return;
+  }
+
+  // Create a weighted array for selection
+  const weightedUsers: string[] = [];
+  entries.results.forEach((entry: any) => {
+    for (let i = 0; i < entry.ticket_count; i++) {
+      weightedUsers.push(entry.user_id);
+    }
+  });
+
+  // Select random winner
+  const winnerUserId = weightedUsers[Math.floor(Math.random() * weightedUsers.length)];
+
+  // Award prize to winner
+  await env.DB.prepare(`
+    UPDATE users SET tickets = tickets + ? WHERE id = ?
+  `).bind(raffle.prize_pool, winnerUserId).run();
+
+  // Mark raffle as completed with winner
+  await env.DB.prepare(`
+    UPDATE raffles SET status = 'completed', winners = ? WHERE id = ?
+  `).bind(JSON.stringify([winnerUserId]), raffle.id).run();
+
+  // Log the win
+  await env.DB.prepare(`
+    INSERT INTO earn_log (id, user_id, amount, source, metadata)
+    VALUES (?, ?, ?, 'raffle_win', ?)
+  `).bind(
+    generateId(),
+    winnerUserId,
+    raffle.prize_pool,
+    JSON.stringify({ raffleId: raffle.id, raffleName: raffle.name })
+  ).run();
+}
+
+async function ensureActiveRaffles(env: Env) {
+  const activeCount = await env.DB.prepare(`
+    SELECT COUNT(*) as count FROM raffles WHERE status = 'active'
+  `).first<any>();
+
+  if (activeCount?.count < 3) {
+    // Create new raffles to maintain 3 active raffles
+    const raffleTypes = [
+      {
+        name: 'Hourly Jackpot',
+        description: 'Win big every hour! The more tickets you enter, the higher your chances',
+        prize_pool: 5000,
+        max_entries_per_user: 10,
+        ticket_cost: 10,
+        duration_minutes: 60
+      },
+      {
+        name: 'Daily Mega Prize',
+        description: 'Massive daily rewards for the luckiest players',
+        prize_pool: 25000,
+        max_entries_per_user: 50,
+        ticket_cost: 25,
+        duration_minutes: 1440
+      },
+      {
+        name: 'Speed Raffle',
+        description: 'Quick 15-minute raffle for instant gratification',
+        prize_pool: 1000,
+        max_entries_per_user: 5,
+        ticket_cost: 5,
+        duration_minutes: 15
+      }
+    ];
+
+    const now = new Date();
+    const raffleType = raffleTypes[Math.floor(Math.random() * raffleTypes.length)];
+    const endTime = new Date(now.getTime() + raffleType.duration_minutes * 60 * 1000);
+    const drawTime = new Date(endTime.getTime() + 5 * 60 * 1000);
+
+    await env.DB.prepare(`
+      INSERT INTO raffles (
+        id, name, description, prize_pool, max_entries_per_user, ticket_cost,
+        start_time, end_time, draw_time, status, winner_count
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      generateId(),
+      raffleType.name,
+      raffleType.description,
+      raffleType.prize_pool,
+      raffleType.max_entries_per_user,
+      raffleType.ticket_cost,
+      now.toISOString(),
+      endTime.toISOString(),
+      drawTime.toISOString(),
+      'active',
+      1
+    ).run();
+  }
+}

@@ -4,7 +4,7 @@ import { Trophy, Gamepad2, Gift, ShoppingBag, User, BarChart3, Sparkles, Shield 
 import { useAuthStore } from '@/stores/authStore';
 
 const navItems = [
-  { path: '/', label: 'Home', icon: Gamepad2 },
+  { path: '/home', label: 'Home', icon: Gamepad2 },
   { path: '/quests', label: 'Quests', icon: Sparkles },
   { path: '/raffles', label: 'Raffles', icon: Gift },
   { path: '/factions', label: 'Factions', icon: Shield },

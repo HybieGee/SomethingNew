@@ -127,41 +127,73 @@ seedRouter.post('/factions', async (c) => {
 
 seedRouter.post('/raffles', async (c) => {
   try {
-    // Create an active raffle matching actual schema
-    const raffleId = generateId();
-    const now = new Date();
-    const startTime = new Date(now.getTime() - 10 * 60 * 1000); // started 10 minutes ago
-    const endTime = new Date(now.getTime() + 50 * 60 * 1000); // ends in 50 minutes
-    const drawTime = new Date(endTime.getTime() + 5 * 60 * 1000); // draw 5 minutes after end
+    // Clear existing raffles first
+    await c.env.DB.prepare('DELETE FROM raffles').run();
 
-    await c.env.DB.prepare(`
-      INSERT OR REPLACE INTO raffles (
-        id, name, description, prize_pool, max_entries_per_user, ticket_cost,
-        start_time, end_time, draw_time, status, winner_count
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-      raffleId,
-      'Hourly Raffle',
-      'Win big! Enter with tickets for a chance to multiply your winnings',
-      5000, // 5000 tickets prize pool
-      10, // max 10 entries per user
-      10, // 10 tickets per entry
-      startTime.toISOString(),
-      endTime.toISOString(),
-      drawTime.toISOString(),
-      'active',
-      1 // 1 winner
-    ).run();
+    const raffles = [
+      {
+        id: generateId(),
+        name: 'Hourly Jackpot',
+        description: 'Win big every hour! The more tickets you enter, the higher your chances',
+        prize_pool: 5000,
+        max_entries_per_user: 10,
+        ticket_cost: 10,
+        duration_minutes: 60 // 1 hour
+      },
+      {
+        id: generateId(),
+        name: 'Daily Mega Prize',
+        description: 'Massive daily rewards for the luckiest players',
+        prize_pool: 25000,
+        max_entries_per_user: 50,
+        ticket_cost: 25,
+        duration_minutes: 1440 // 24 hours
+      },
+      {
+        id: generateId(),
+        name: 'Speed Raffle',
+        description: 'Quick 15-minute raffle for instant gratification',
+        prize_pool: 1000,
+        max_entries_per_user: 5,
+        ticket_cost: 5,
+        duration_minutes: 15 // 15 minutes
+      }
+    ];
+
+    const now = new Date();
+
+    for (const raffle of raffles) {
+      const startTime = now;
+      const endTime = new Date(now.getTime() + raffle.duration_minutes * 60 * 1000);
+      const drawTime = new Date(endTime.getTime() + 5 * 60 * 1000);
+
+      await c.env.DB.prepare(`
+        INSERT INTO raffles (
+          id, name, description, prize_pool, max_entries_per_user, ticket_cost,
+          start_time, end_time, draw_time, status, winner_count
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).bind(
+        raffle.id,
+        raffle.name,
+        raffle.description,
+        raffle.prize_pool,
+        raffle.max_entries_per_user,
+        raffle.ticket_cost,
+        startTime.toISOString(),
+        endTime.toISOString(),
+        drawTime.toISOString(),
+        'active',
+        1
+      ).run();
+    }
 
     return c.json({
       success: true,
-      message: 'Raffle created successfully',
-      raffleId,
-      prizePool: 5000,
-      endTime: endTime.toISOString()
+      message: 'Raffles seeded successfully',
+      count: raffles.length
     });
   } catch (error: any) {
     console.error('Raffle seeding error:', error);
-    return c.json({ error: 'Failed to seed raffle', details: error.message }, 500);
+    return c.json({ error: 'Failed to seed raffles', details: error.message }, 500);
   }
 });

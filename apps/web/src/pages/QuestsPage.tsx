@@ -70,9 +70,13 @@ export default function QuestsPage() {
     // 10 second timer
     setTimeout(() => {
       setTapping(false);
-      // Auto-submit when timer ends
-      if (tapCount > 0) {
-        submitTapScore(questSlug, tapCount);
+      // Auto-submit immediately when timer ends
+      const finalScore = tapCount;
+      setTapCount(0);
+      if (finalScore > 0) {
+        submitTapScore(questSlug, finalScore);
+      } else {
+        setActiveQuestSlug(null);
       }
     }, 10000);
   };
@@ -87,6 +91,8 @@ export default function QuestsPage() {
       refetch();
     } catch (error: any) {
       toast.error(error.message);
+      setTapCount(0);
+      setActiveQuestSlug(null);
     }
   };
 

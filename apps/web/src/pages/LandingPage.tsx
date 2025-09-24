@@ -418,19 +418,18 @@ export default function LandingPage() {
               <div>
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">
                   <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
-                    Creator Rewards Integration
+                    Pair Faction Rewards
                   </span>
                 </h2>
                 <p className="text-lg text-gray-300 mb-6">
-                  When creators succeed on Pump.fun, the entire community benefits!
-                  Earnings automatically trigger:
+                  When you Pair Faction does well the entire faction is rewarded benefits, All rewards automatically trigger:
                 </p>
                 <ul className="space-y-3 mb-6">
                   {[
                     "Bigger raffle prize pools",
                     "Global ticket multipliers (1.25x - 3x)",
                     "Seasonal championship rewards",
-                    "Exclusive creator events"
+                    "Exclusive Pair Faction Events"
                   ].map((item) => (
                     <li key={item} className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
