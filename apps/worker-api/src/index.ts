@@ -16,10 +16,11 @@ const app = new Hono<{ Bindings: Env }>();
 
 app.use('*', cors({
   origin: (origin) => {
-    // Allow any localhost or pages.dev domain
+    // Allow any localhost, pages.dev, or our specific domains
     if (!origin) return '*';
     if (origin.includes('localhost') ||
         origin.includes('pages.dev') ||
+        origin.includes('cloudflare') ||
         origin.includes('127.0.0.1')) {
       return origin;
     }
@@ -27,7 +28,8 @@ app.use('*', cors({
   },
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization']
+  allowHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+  exposeHeaders: ['Set-Cookie']
 }));
 
 app.use('*', async (c, next) => {

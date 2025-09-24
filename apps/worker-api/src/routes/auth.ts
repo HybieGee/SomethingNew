@@ -56,7 +56,7 @@ authRouter.post('/register', async (c) => {
       sessionId
     });
 
-    response.headers.set('Set-Cookie', `session=${sessionId}; HttpOnly; Secure; SameSite=Lax; Max-Age=${GAME_CONFIG.SESSION_DURATION / 1000}; Path=/`);
+    response.headers.set('Set-Cookie', `session=${sessionId}; HttpOnly; Secure; SameSite=None; Max-Age=${GAME_CONFIG.SESSION_DURATION / 1000}; Path=/`);
 
     return response;
   } catch (error: any) {
@@ -106,7 +106,7 @@ authRouter.post('/login', async (c) => {
       sessionId
     });
 
-    response.headers.set('Set-Cookie', `session=${sessionId}; HttpOnly; Secure; SameSite=Lax; Max-Age=${GAME_CONFIG.SESSION_DURATION / 1000}; Path=/`);
+    response.headers.set('Set-Cookie', `session=${sessionId}; HttpOnly; Secure; SameSite=None; Max-Age=${GAME_CONFIG.SESSION_DURATION / 1000}; Path=/`);
 
     return response;
   } catch (error: any) {
@@ -124,7 +124,7 @@ authRouter.post('/logout', async (c) => {
   }
 
   const response = c.json({ success: true });
-  response.headers.set('Set-Cookie', `session=; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/`);
+  response.headers.set('Set-Cookie', `session=; HttpOnly; Secure; SameSite=None; Max-Age=0; Path=/`);
 
   return response;
 });
