@@ -6,30 +6,8 @@ export const seedRouter = new Hono<{ Bindings: Env }>();
 
 seedRouter.post('/quests', async (c) => {
   try {
-    // Add diverse quest types
+    // Add 3 focused quest types
     const quests = [
-      {
-        id: generateId(),
-        slug: 'solana_prediction',
-        title: 'SOL Price Oracle',
-        description: 'Predict if Solana will go up or down in the next hour!',
-        type: 'up_down_call',
-        min_reward: 20,
-        max_reward: 80,
-        cooldown_minutes: 60,
-        active: true
-      },
-      {
-        id: generateId(),
-        slug: 'tap_challenge',
-        title: 'Lightning Reflexes',
-        description: 'Test your speed! Tap as fast as you can in 10 seconds',
-        type: 'tap_challenge',
-        min_reward: 5,
-        max_reward: 25,
-        cooldown_minutes: 45,
-        active: true
-      },
       {
         id: generateId(),
         slug: 'memecoin_trivia',
@@ -56,66 +34,11 @@ seedRouter.post('/quests', async (c) => {
         id: generateId(),
         slug: 'whale_hunt',
         title: 'Whale Hunting',
-        description: 'Spot the biggest wallet movements! Predict which token will have highest volume',
+        description: 'Predict which launchpad will have the most volume (Bonk, Pump.fun, Virtual Curve)',
         type: 'volume_prediction',
         min_reward: 30,
         max_reward: 120,
         cooldown_minutes: 120,
-        active: true
-      },
-      {
-        id: generateId(),
-        slug: 'diamond_hands',
-        title: 'Diamond Hands Test',
-        description: 'Hold your prediction for the full duration without changing it!',
-        type: 'hold_challenge',
-        min_reward: 50,
-        max_reward: 150,
-        cooldown_minutes: 180,
-        active: true
-      },
-      {
-        id: generateId(),
-        slug: 'faction_battle',
-        title: 'Faction Battle Arena',
-        description: 'Compete against other factions in this hourly showdown!',
-        type: 'faction_vs_faction',
-        min_reward: 40,
-        max_reward: 200,
-        cooldown_minutes: 60,
-        active: true
-      },
-      {
-        id: generateId(),
-        slug: 'streak_master',
-        title: 'Streak Master',
-        description: 'Complete 3 different quests in a row without failing any!',
-        type: 'quest_streak',
-        min_reward: 75,
-        max_reward: 300,
-        cooldown_minutes: 240,
-        active: true
-      },
-      {
-        id: generateId(),
-        slug: 'market_timing',
-        title: 'Market Timing Expert',
-        description: 'Predict the exact minute when SOL will hit a new hourly high/low!',
-        type: 'precise_timing',
-        min_reward: 60,
-        max_reward: 250,
-        cooldown_minutes: 120,
-        active: true
-      },
-      {
-        id: generateId(),
-        slug: 'social_prophet',
-        title: 'Social Media Prophet',
-        description: 'Predict which crypto will trend most on social media in the next 2 hours!',
-        type: 'social_prediction',
-        min_reward: 35,
-        max_reward: 140,
-        cooldown_minutes: 150,
         active: true
       }
     ];

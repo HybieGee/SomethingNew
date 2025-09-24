@@ -66,7 +66,7 @@ export default function CreatorRewardsPage() {
       {/* Navigation */}
       <div className="p-4">
         <Link
-          to="/"
+          to="/home"
           className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -252,7 +252,7 @@ export default function CreatorRewardsPage() {
                   <Rocket className="w-5 h-5" />
                 </motion.button>
               </Link>
-              <Link to="/">
+              <Link to="/home">
                 <button className="px-10 py-4 bg-white/10 border border-white/20 rounded-xl font-bold text-lg hover:bg-white/20 transition-colors">
                   Back to Home
                 </button>

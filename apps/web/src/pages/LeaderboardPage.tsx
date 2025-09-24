@@ -30,7 +30,7 @@ export default function LeaderboardPage() {
       {/* Navigation */}
       <div className="p-4">
         <Link
-          to="/"
+          to="/home"
           className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -227,7 +227,7 @@ export default function LeaderboardPage() {
                 Join the Competition
               </button>
             </Link>
-            <Link to="/">
+            <Link to="/home">
               <button className="px-8 py-3 bg-white/10 border border-white/20 rounded-xl font-bold hover:bg-white/20 transition-colors">
                 Back to Games
               </button>
