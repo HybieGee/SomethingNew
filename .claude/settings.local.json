@@ -19,7 +19,8 @@
       "Bash(wrangler secret put:*)",
       "Bash(wrangler deploy:*)",
       "Bash(find:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []
