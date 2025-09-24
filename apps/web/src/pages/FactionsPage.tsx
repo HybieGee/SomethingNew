@@ -36,7 +36,11 @@ export default function FactionsPage() {
       queryClient.invalidateQueries({ queryKey: ['factions'] });
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to join faction');
+      if (error.message === 'Unauthorized') {
+        toast.error('Authentication required. Try refreshing the page or using the deployed app instead of localhost.');
+      } else {
+        toast.error(error.message || 'Failed to join faction');
+      }
     },
   });
 
@@ -79,9 +83,21 @@ export default function FactionsPage() {
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-2">Choose Your Faction</h1>
-        <p className="text-gray-400">
+        <p className="text-gray-400 mb-4">
           Join a faction to earn bonus multipliers and support your favorite tokens!
         </p>
+        <div className="bg-arcade-dark/30 border border-white/10 rounded-lg p-4 max-w-2xl mx-auto">
+          <p className="text-sm text-gray-300 mb-2">
+            <span className="text-arcade-yellow font-semibold">⚡ Dynamic Multipliers:</span>
+            Faction bonus multipliers and benefits change based on how well your chosen tokens perform compared to others.
+            Strong token performance = higher rewards for your faction!
+          </p>
+          {window.location.hostname === 'localhost' && (
+            <p className="text-xs text-orange-400 bg-orange-400/10 rounded px-2 py-1">
+              <strong>Dev Note:</strong> If you get "Unauthorized" error, use the deployed app instead of localhost for proper authentication
+            </p>
+          )}
+        </div>
       </div>
 
       {currentFaction && (
