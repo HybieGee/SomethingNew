@@ -39,7 +39,27 @@ questRouter.get('/', authMiddleware, async (c) => {
     // Check for active predictions
     let activePrediction = null;
     if (quest.slug === 'solana_prediction') {
-      const predictionData = await c.env.CACHE.get(`prediction:${user.id}:${quest.id}`, 'json');
+      // First check cache
+      let predictionData = await c.env.CACHE.get(`prediction:${user.id}:${quest.id}`, 'json');
+
+      // If not in cache, check database for unresolved predictions
+      if (!predictionData) {
+        const dbPrediction = await c.env.DB.prepare(`
+          SELECT * FROM price_predictions
+          WHERE user_id = ? AND quest_id = ? AND resolved = FALSE
+          ORDER BY created_at DESC LIMIT 1
+        `).bind(user.id, quest.id).first();
+
+        if (dbPrediction) {
+          predictionData = {
+            predictionId: dbPrediction.id,
+            prediction: dbPrediction.prediction,
+            initialPrice: dbPrediction.initial_price,
+            expiresAt: dbPrediction.expires_at
+          };
+        }
+      }
+
       if (predictionData) {
         activePrediction = predictionData;
       }
@@ -280,12 +300,89 @@ questRouter.post('/complete', authMiddleware, async (c) => {
         break;
 
       case 'trivia':
-        // Trivia is handled by separate endpoints
-        return c.json({
-          error: 'Use /quests/trivia endpoint for trivia quests'
-        }, 400);
+        // Handle special trivia quests
+        if (quest.slug === 'faction_loyalty') {
+          // Handle faction loyalty
+          const userFaction = await c.env.DB.prepare(`
+            SELECT faction_id, joined_at FROM user_factions WHERE user_id = ?
+          `).bind(user.id).first<any>();
+
+          if (!userFaction) {
+            return c.json({ error: 'You must join a faction first' }, 400);
+          }
+
+          // Check if user has an active loyalty tracking session
+          const activeTracking = await c.env.DB.prepare(`
+            SELECT * FROM faction_loyalty_tracking
+            WHERE user_id = ? AND quest_id = ? AND completed = FALSE
+          `).bind(user.id, quest.id).first<any>();
+
+          if (activeTracking) {
+            // Check if 24 hours have passed
+            const startTime = new Date(activeTracking.started_at);
+            const now = new Date();
+            const hoursElapsed = (now.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+
+            if (hoursElapsed >= 24) {
+              // Complete the loyalty bonus
+              await c.env.DB.prepare(`
+                UPDATE faction_loyalty_tracking
+                SET completed = TRUE
+                WHERE id = ?
+              `).bind(activeTracking.id).run();
+
+              reward = Math.floor(quest.min_reward + Math.random() * (quest.max_reward - quest.min_reward));
+              result = { hoursLoyalToFaction: 24 };
+            } else {
+              return c.json({
+                error: 'Faction loyalty in progress',
+                message: `${Math.ceil(24 - hoursElapsed)} hours remaining for loyalty bonus`,
+                hoursRemaining: Math.ceil(24 - hoursElapsed)
+              }, 429);
+            }
+          } else {
+            // Start faction loyalty tracking
+            const trackingId = generateId();
+            await c.env.DB.prepare(`
+              INSERT INTO faction_loyalty_tracking (id, user_id, quest_id, faction_id)
+              VALUES (?, ?, ?, ?)
+            `).bind(trackingId, user.id, quest.id, userFaction.faction_id).run();
+
+            return c.json({
+              success: true,
+              message: 'Faction loyalty tracking started! Stay in your faction for 24 hours',
+              trackingStarted: true
+            });
+          }
+        } else {
+          // Regular trivia is handled by separate endpoints
+          return c.json({
+            error: 'Use /quests/trivia endpoint for trivia quests'
+          }, 400);
+        }
+        break;
 
       default:
+        // Handle volume prediction for whale hunting
+        if (quest.slug === 'whale_hunt' && data.choice) {
+          // Store the prediction (similar to Solana prediction but for launchpad volume)
+          const predictionId = generateId();
+          await c.env.CACHE.put(
+            `volume_prediction:${user.id}:${quest.id}`,
+            JSON.stringify({
+              predictionId,
+              choice: data.choice,
+              timestamp: new Date().toISOString()
+            }),
+            { expirationTtl: 7200 } // 2 hours
+          );
+
+          return c.json({
+            success: true,
+            message: `Prediction recorded! You chose ${(data.choice as string).toUpperCase()}. Check back in 2 hours for results.`
+          });
+        }
+
         return c.json({ error: 'Unknown quest type' }, 400);
     }
 

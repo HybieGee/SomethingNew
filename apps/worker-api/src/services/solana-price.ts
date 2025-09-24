@@ -56,10 +56,27 @@ export async function checkPredictionResult(
   userId: string,
   questId: string
 ): Promise<{ success: boolean; reward?: number; message: string }> {
-  const predictionData = await env.CACHE.get(`prediction:${userId}:${questId}`, 'json');
+  // First check cache
+  let predictionData = await env.CACHE.get(`prediction:${userId}:${questId}`, 'json');
 
+  // If not in cache, check database for unresolved predictions
   if (!predictionData) {
-    return { success: false, message: 'No active prediction found' };
+    const dbPrediction = await env.DB.prepare(`
+      SELECT * FROM price_predictions
+      WHERE user_id = ? AND quest_id = ? AND resolved = FALSE
+      ORDER BY created_at DESC LIMIT 1
+    `).bind(userId, questId).first();
+
+    if (!dbPrediction) {
+      return { success: false, message: 'No active prediction found' };
+    }
+
+    predictionData = {
+      predictionId: dbPrediction.id,
+      prediction: dbPrediction.prediction,
+      initialPrice: dbPrediction.initial_price,
+      expiresAt: dbPrediction.expires_at
+    };
   }
 
   const expiresAt = new Date(predictionData.expiresAt);
@@ -74,6 +91,13 @@ export async function checkPredictionResult(
   const priceDiff = currentPrice - predictionData.initialPrice;
   const actualDirection = priceDiff > 0 ? 'up' : 'down';
   const won = actualDirection === predictionData.prediction;
+
+  // Mark prediction as resolved in database
+  await env.DB.prepare(`
+    UPDATE price_predictions
+    SET resolved = TRUE
+    WHERE user_id = ? AND quest_id = ? AND resolved = FALSE
+  `).bind(userId, questId).run();
 
   // Clear the prediction from cache
   await env.CACHE.delete(`prediction:${userId}:${questId}`);

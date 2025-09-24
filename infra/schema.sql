@@ -159,6 +159,22 @@ CREATE TABLE IF NOT EXISTS user_purchases (
 
 CREATE INDEX idx_user_purchases_user ON user_purchases(user_id);
 
+-- Price predictions table
+CREATE TABLE IF NOT EXISTS price_predictions (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  quest_id TEXT NOT NULL,
+  prediction TEXT CHECK (prediction IN ('up', 'down')),
+  initial_price REAL NOT NULL,
+  expires_at DATETIME NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  resolved BOOLEAN DEFAULT FALSE,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (quest_id) REFERENCES quests(id)
+);
+
+CREATE INDEX idx_price_predictions_user ON price_predictions(user_id, expires_at);
+
 -- Admin claims table
 CREATE TABLE IF NOT EXISTS admin_claims (
   id TEXT PRIMARY KEY,

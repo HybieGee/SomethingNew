@@ -24,7 +24,8 @@
       "Bash(npm run deploy:*)",
       "Bash(npm run dev:*)",
       "Bash(npx wrangler tail:*)",
-      "Bash(npx wrangler d1 execute:*)"
+      "Bash(npx wrangler d1 execute:*)",
+      "Bash(npx wrangler:*)"
     ],
     "deny": [],
     "ask": []

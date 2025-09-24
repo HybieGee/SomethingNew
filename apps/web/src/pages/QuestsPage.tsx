@@ -166,6 +166,39 @@ export default function QuestsPage() {
     }
   };
 
+  const handleLaunchpadPrediction = async (questSlug: string, choice: 'bonk' | 'pump' | 'curve') => {
+    try {
+      const result = await api.quests.complete({ questSlug, choice });
+      toast.success(`Prediction recorded! You chose ${choice.toUpperCase()}. Check back in 2 hours for results.`);
+      updateTickets(result.newTickets);
+      refetch();
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleFactionLoyalty = async (questSlug: string) => {
+    try {
+      const result = await api.quests.complete({ questSlug });
+
+      if (result.trackingStarted) {
+        toast.success(result.message || 'Faction loyalty tracking started! Stay in your faction for 24 hours');
+      } else {
+        toast.success(`Earned ${result.reward} tickets! Faction loyalty bonus complete!`);
+        updateTickets(result.newTickets);
+      }
+
+      refetch();
+    } catch (error: any) {
+      // Handle specific error cases
+      if (error.message.includes('hours remaining')) {
+        toast.info(error.message);
+      } else {
+        toast.error(error.message);
+      }
+    }
+  };
+
   const formatCooldown = (ms: number) => {
     const minutes = Math.floor(ms / 60000);
     const seconds = Math.floor((ms % 60000) / 1000);
@@ -314,6 +347,67 @@ export default function QuestsPage() {
                 <Brain className="inline mr-2" size={18} />
                 Start Memecoin Trivia
               </button>
+            )}
+
+            {/* Crypto IQ Challenge */}
+            {quest.slug === 'crypto_iq_challenge' && (
+              <button
+                onClick={() => startTrivia(quest.slug)}
+                disabled={!quest.available}
+                className="w-full py-3 rounded-lg arcade-gradient text-white font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+              >
+                <Brain className="inline mr-2" size={18} />
+                Start Crypto IQ Challenge
+              </button>
+            )}
+
+            {/* Whale Hunting */}
+            {quest.slug === 'whale_hunt' && (
+              <div>
+                <div className="mb-4">
+                  <p className="text-sm text-gray-400 mb-3">Which launchpad will have the most volume?</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    <button
+                      onClick={() => handleLaunchpadPrediction(quest.slug, 'bonk')}
+                      disabled={!quest.available}
+                      className="py-2 rounded-lg bg-orange-500/20 border border-orange-500/50 hover:bg-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      🟠 Bonk
+                    </button>
+                    <button
+                      onClick={() => handleLaunchpadPrediction(quest.slug, 'pump')}
+                      disabled={!quest.available}
+                      className="py-2 rounded-lg bg-purple-500/20 border border-purple-500/50 hover:bg-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      🟣 Pump.fun
+                    </button>
+                    <button
+                      onClick={() => handleLaunchpadPrediction(quest.slug, 'curve')}
+                      disabled={!quest.available}
+                      className="py-2 rounded-lg bg-blue-500/20 border border-blue-500/50 hover:bg-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      🔵 Virtual Curve
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Faction Loyalty Bonus */}
+            {quest.slug === 'faction_loyalty' && (
+              <div>
+                <button
+                  onClick={() => handleFactionLoyalty(quest.slug)}
+                  disabled={!quest.available}
+                  className="w-full py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                >
+                  <Sparkles className="inline mr-2" size={18} />
+                  Claim Faction Loyalty Bonus
+                </button>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Stay in your current faction for 24 hours to earn bonus tickets
+                </p>
+              </div>
             )}
           </motion.div>
         ))}
