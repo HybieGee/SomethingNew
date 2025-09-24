@@ -20,7 +20,10 @@
       "Bash(wrangler deploy:*)",
       "Bash(find:*)",
       "Bash(curl:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(npm run deploy:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx wrangler tail:*)"
     ],
     "deny": [],
     "ask": []

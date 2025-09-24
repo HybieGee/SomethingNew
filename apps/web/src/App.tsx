@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import Layout from '@/components/Layout';
 import AuthPage from '@/pages/AuthPage';
@@ -14,6 +15,14 @@ import AdminPage from '@/pages/AdminPage';
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const checkAuth = useAuthStore((state) => state.checkAuth);
+
+  useEffect(() => {
+    // Check if user is authenticated on app load
+    if (isAuthenticated) {
+      checkAuth();
+    }
+  }, []);
 
   return (
     <Routes>

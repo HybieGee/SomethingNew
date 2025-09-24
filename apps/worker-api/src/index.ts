@@ -7,6 +7,7 @@ import { raffleRouter } from './routes/raffles';
 import { storeRouter } from './routes/store';
 import { adminRouter } from './routes/admin';
 import { publicRouter } from './routes/public';
+import { seedRouter } from './routes/seed';
 import { RaffleDO } from './durable-objects/RaffleDO';
 import type { Env } from './types';
 
@@ -47,6 +48,7 @@ app.route('/raffles', raffleRouter);
 app.route('/storefront', storeRouter);
 app.route('/admin', adminRouter);
 app.route('/public', publicRouter);
+app.route('/seed', seedRouter);
 
 app.onError((err, c) => {
   console.error(`Error: ${err.message}`, err.stack);

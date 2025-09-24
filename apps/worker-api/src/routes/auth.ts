@@ -115,7 +115,9 @@ authRouter.post('/login', async (c) => {
 });
 
 authRouter.post('/logout', async (c) => {
-  const sessionCookie = c.req.cookie('session');
+  const sessionCookie = c.req.header('cookie')?.split(';')
+    .find(cookie => cookie.trim().startsWith('session='))
+    ?.split('=')[1];
 
   if (sessionCookie) {
     await c.env.CACHE.delete(`session:${sessionCookie}`);

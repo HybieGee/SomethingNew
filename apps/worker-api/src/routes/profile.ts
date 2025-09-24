@@ -42,52 +42,69 @@ profileRouter.get('/me', authMiddleware, async (c) => {
 });
 
 profileRouter.post('/me/daily', authMiddleware, async (c) => {
-  const user = c.get('user');
+  try {
+    const user = c.get('user');
 
-  const userInfo = await c.env.DB.prepare(`
-    SELECT streak_days, last_daily_claim_at, tickets
-    FROM users WHERE id = ?
-  `).bind(user.id).first<any>();
+    const userInfo = await c.env.DB.prepare(`
+      SELECT streak_days, last_daily_claim_at, tickets
+      FROM users WHERE id = ?
+    `).bind(user.id).first<any>();
 
-  if (userInfo.last_daily_claim_at) {
-    const lastClaim = new Date(userInfo.last_daily_claim_at);
-    const now = new Date();
-    const hoursSinceLastClaim = (now.getTime() - lastClaim.getTime()) / (1000 * 60 * 60);
-
-    if (hoursSinceLastClaim < 20) {
-      return c.json({
-        error: 'Already claimed today',
-        nextClaimIn: Math.ceil(20 - hoursSinceLastClaim)
-      }, 429);
+    if (!userInfo) {
+      return c.json({ error: 'User not found' }, 404);
     }
+
+    // Check if already claimed today (20 hour cooldown)
+    if (userInfo.last_daily_claim_at) {
+      const lastClaim = new Date(userInfo.last_daily_claim_at);
+      const now = new Date();
+      const hoursSinceLastClaim = (now.getTime() - lastClaim.getTime()) / (1000 * 60 * 60);
+
+      if (hoursSinceLastClaim < 20) {
+        return c.json({
+          error: 'Already claimed today',
+          nextClaimIn: Math.ceil(20 - hoursSinceLastClaim)
+        }, 429);
+      }
+    }
+
+    const streakDays = (userInfo.streak_days || 0) + 1;
+    const reward = calculateDailyReward(GAME_CONFIG.DAILY_REWARD_BASE, streakDays);
+    const newTickets = (userInfo.tickets || 0) + reward;
+
+    // Update user
+    await c.env.DB.prepare(`
+      UPDATE users
+      SET tickets = ?, streak_days = ?, last_daily_claim_at = datetime('now')
+      WHERE id = ?
+    `).bind(newTickets, streakDays, user.id).run();
+
+    // Log the reward
+    try {
+      await c.env.DB.prepare(`
+        INSERT INTO earn_log (id, user_id, amount, source, metadata)
+        VALUES (?, ?, ?, 'daily_reward', ?)
+      `).bind(
+        generateId(),
+        user.id,
+        reward,
+        JSON.stringify({ streakDays })
+      ).run();
+    } catch (logError) {
+      console.error('Failed to log reward:', logError);
+      // Continue even if logging fails
+    }
+
+    return c.json({
+      success: true,
+      reward,
+      newTickets,
+      streakDays
+    });
+  } catch (error: any) {
+    console.error('Daily reward error:', error);
+    return c.json({ error: 'Failed to claim daily reward', details: error.message }, 500);
   }
-
-  const streakDays = userInfo.streak_days + 1;
-  const reward = calculateDailyReward(GAME_CONFIG.DAILY_REWARD_BASE, streakDays);
-  const newTickets = userInfo.tickets + reward;
-
-  await c.env.DB.prepare(`
-    UPDATE users
-    SET tickets = ?, streak_days = ?, last_daily_claim_at = datetime('now')
-    WHERE id = ?
-  `).bind(newTickets, streakDays, user.id).run();
-
-  await c.env.DB.prepare(`
-    INSERT INTO earn_log (id, user_id, amount, source, metadata)
-    VALUES (?, ?, ?, 'daily_reward', ?)
-  `).bind(
-    generateId(),
-    user.id,
-    reward,
-    JSON.stringify({ streakDays })
-  ).run();
-
-  return c.json({
-    success: true,
-    reward,
-    newTickets,
-    streakDays
-  });
 });
 
 profileRouter.post('/me/address', authMiddleware, async (c) => {
