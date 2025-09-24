@@ -422,7 +422,7 @@ export default function LandingPage() {
                   </span>
                 </h2>
                 <p className="text-lg text-gray-300 mb-6">
-                  When you Pair Faction does well the entire faction is rewarded benefits, All rewards automatically trigger:
+                  When your Pair Faction succeeds, the entire faction shares in the benefits. All rewards automatically trigger:
                 </p>
                 <ul className="space-y-3 mb-6">
                   {[
@@ -439,7 +439,7 @@ export default function LandingPage() {
                 </ul>
                 <Link to="/creator-rewards">
                   <button className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl font-bold hover:shadow-lg hover:shadow-orange-500/25 transition-shadow">
-                    Learn About Creator Rewards
+                    Learn About Pair Faction Rewards
                   </button>
                 </Link>
               </div>

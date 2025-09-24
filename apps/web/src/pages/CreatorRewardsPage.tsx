@@ -9,55 +9,55 @@ import {
 export default function CreatorRewardsPage() {
   const rewardTiers = [
     {
-      threshold: "$1K",
+      threshold: "100",
       multiplier: "1.25x",
       prizeBoost: "10%",
-      features: ["Global ticket multiplier", "Prize pool boost", "Creator badge"]
+      features: ["Global ticket multiplier", "Prize pool boost", "Faction member badge"]
     },
     {
-      threshold: "$5K",
+      threshold: "500",
       multiplier: "1.5x",
       prizeBoost: "25%",
       features: ["Enhanced multiplier", "Bigger prize boost", "Special events access"]
     },
     {
-      threshold: "$10K",
+      threshold: "1000",
       multiplier: "2x",
       prizeBoost: "50%",
-      features: ["Double multiplier", "Major prize boost", "Creator spotlight"]
+      features: ["Double multiplier", "Major prize boost", "Faction spotlight"]
     },
     {
-      threshold: "$25K",
+      threshold: "2500",
       multiplier: "3x",
       prizeBoost: "100%",
-      features: ["Triple multiplier", "Prize pool doubling", "VIP creator status"]
+      features: ["Triple multiplier", "Prize pool doubling", "VIP faction status"]
     }
   ];
 
   const rewardMechanics = [
     {
       icon: DollarSign,
-      title: "Token Success Tracking",
-      description: "We monitor successful token launches on Pump.fun using on-chain data",
-      details: "Real-time tracking of token performance, market cap milestones, and trading volume"
+      title: "Faction Performance Tracking",
+      description: "We monitor your chosen faction's token performance using real-time data",
+      details: "Real-time tracking of faction token performance, price movements, and trading activity"
     },
     {
       icon: Zap,
       title: "Automatic Triggers",
-      description: "When a creator's token hits milestones, rewards activate instantly",
-      details: "No manual claims needed - multipliers and boosts activate within minutes"
+      description: "When your faction reaches member milestones, rewards activate instantly",
+      details: "No manual claims needed - multipliers and boosts activate when faction grows"
     },
     {
       icon: Users,
-      title: "Community Benefits",
-      description: "Every player benefits when any creator succeeds",
-      details: "Global multipliers mean everyone wins more tickets during creator success periods"
+      title: "Faction Benefits",
+      description: "Every faction member benefits when the faction grows and succeeds",
+      details: "Faction multipliers mean all members win more tickets during faction success periods"
     },
     {
       icon: Trophy,
       title: "Seasonal Championships",
-      description: "Creator success contributes to massive seasonal prize pools",
-      details: "Quarterly championships with prizes funded by creator milestone achievements"
+      description: "Faction success contributes to massive seasonal prize pools",
+      details: "Quarterly championships with prizes funded by faction milestone achievements"
     }
   ];
 
@@ -83,23 +83,23 @@ export default function CreatorRewardsPage() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-full mb-6">
               <Crown className="w-4 h-4 text-yellow-400" />
-              <span className="text-sm text-yellow-300">Creator Rewards Program</span>
+              <span className="text-sm text-yellow-300">Pair Faction Rewards Program</span>
             </div>
 
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
               <span className="bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
-                When Creators Win,
+                When Factions Grow,
               </span>
               <br />
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                Everyone Wins
+                Members Win
               </span>
             </h1>
 
             <p className="text-xl text-gray-300 mb-8 leading-relaxed">
-              Our revolutionary reward system connects creator success on Pump.fun
-              directly to player rewards in RAFFLE Arcade. The more creators succeed,
-              the bigger everyone's rewards become.
+              Our revolutionary reward system connects faction growth and success
+              directly to member rewards in RAFFLE Arcade. The more your faction grows,
+              the bigger your rewards become.
             </p>
 
             <div className="grid md:grid-cols-3 gap-6 mb-12">
@@ -115,8 +115,8 @@ export default function CreatorRewardsPage() {
               </div>
               <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-6">
                 <Users className="w-8 h-8 text-purple-400 mb-4" />
-                <h3 className="text-lg font-bold mb-2">Global Benefits</h3>
-                <p className="text-gray-400 text-sm">Every player benefits from creator success</p>
+                <h3 className="text-lg font-bold mb-2">Faction Benefits</h3>
+                <p className="text-gray-400 text-sm">Every faction member benefits from faction success</p>
               </div>
             </div>
           </motion.div>
@@ -137,7 +137,7 @@ export default function CreatorRewardsPage() {
                 Milestone Rewards
               </span>
             </h2>
-            <p className="text-xl text-gray-400">Higher creator success = Bigger player rewards</p>
+            <p className="text-xl text-gray-400">More faction members = Bigger member rewards</p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -152,7 +152,7 @@ export default function CreatorRewardsPage() {
               >
                 <div className="text-center mb-4">
                   <div className="text-3xl font-bold text-yellow-400 mb-2">{tier.threshold}</div>
-                  <div className="text-sm text-gray-400">Token Market Cap</div>
+                  <div className="text-sm text-gray-400">Faction Members</div>
                 </div>
 
                 <div className="space-y-4 mb-6">
@@ -191,10 +191,10 @@ export default function CreatorRewardsPage() {
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
               <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                How Creator Rewards Work
+                How Pair Faction Rewards Work
               </span>
             </h2>
-            <p className="text-xl text-gray-400">Seamless integration with Pump.fun success metrics</p>
+            <p className="text-xl text-gray-400">Seamless integration with faction membership growth</p>
           </motion.div>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -223,55 +223,6 @@ export default function CreatorRewardsPage() {
         </div>
       </section>
 
-      {/* Current Active Boosts */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                Live Creator Boosts
-              </span>
-            </h2>
-            <p className="text-xl text-gray-400">Currently active multipliers and rewards</p>
-          </motion.div>
-
-          <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 backdrop-blur border border-green-500/30 rounded-3xl p-8">
-            <div className="grid md:grid-cols-3 gap-6 text-center">
-              <div>
-                <div className="text-3xl font-bold text-green-400 mb-2">1.5x</div>
-                <div className="text-sm text-gray-300">Active Multiplier</div>
-                <div className="text-xs text-gray-500 mt-1">From $BONK success</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-blue-400 mb-2">25%</div>
-                <div className="text-sm text-gray-300">Prize Pool Boost</div>
-                <div className="text-xs text-gray-500 mt-1">Next raffle enhanced</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-purple-400 mb-2">2h 34m</div>
-                <div className="text-sm text-gray-300">Time Remaining</div>
-                <div className="text-xs text-gray-500 mt-1">Until boost expires</div>
-              </div>
-            </div>
-
-            <div className="mt-8 text-center">
-              <p className="text-green-300 mb-4">
-                🎉 Creator milestone achieved! All players earning 1.5x tickets for the next few hours!
-              </p>
-              <Link to="/auth">
-                <button className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl font-bold hover:shadow-lg hover:shadow-green-500/25 transition-shadow">
-                  Start Playing with Boost
-                </button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-20 px-4">
@@ -283,12 +234,12 @@ export default function CreatorRewardsPage() {
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               <span className="bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
-                Ready to Benefit from Creator Success?
+                Ready to Benefit from Faction Success?
               </span>
             </h2>
             <p className="text-xl text-gray-300 mb-8">
-              Join the only platform where creator wins directly boost your rewards.
-              The more the ecosystem succeeds, the more you earn!
+              Join the only platform where faction growth directly boosts your rewards.
+              The more your faction succeeds, the more you earn!
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/auth">
