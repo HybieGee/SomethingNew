@@ -6,11 +6,44 @@ export const seedRouter = new Hono<{ Bindings: Env }>();
 
 seedRouter.post('/quests', async (c) => {
   try {
-    // Add 3 focused quest types
+    // Keep working quests + add new ones
     const quests = [
       {
         id: generateId(),
+        slug: 'solana_prediction',
+        title: 'Solana Price Prediction',
+        description: 'Predict if SOL will go up or down in the next hour!',
+        type: 'up_down_call',
+        min_reward: 20,
+        max_reward: 80,
+        cooldown_minutes: 60,
+        active: true
+      },
+      {
+        id: generateId(),
+        slug: 'tap_challenge',
+        title: 'Tap Challenge',
+        description: 'Test your speed! Tap as fast as you can in 10 seconds',
+        type: 'tap_challenge',
+        min_reward: 5,
+        max_reward: 25,
+        cooldown_minutes: 45,
+        active: true
+      },
+      {
+        id: generateId(),
         slug: 'memecoin_trivia',
+        title: 'Memecoin Trivia',
+        description: 'Test your knowledge of memecoins! Answer 5 questions correctly',
+        type: 'trivia',
+        min_reward: 15,
+        max_reward: 40,
+        cooldown_minutes: 90,
+        active: true
+      },
+      {
+        id: generateId(),
+        slug: 'crypto_iq_challenge',
         title: 'Crypto IQ Challenge',
         description: 'Test your crypto knowledge! Answer 5 questions about DeFi & memecoins',
         type: 'trivia',
