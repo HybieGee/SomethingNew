@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -21,6 +21,13 @@ export default function QuestsPage() {
   const [tapping, setTapping] = useState(false);
   const [activeQuestSlug, setActiveQuestSlug] = useState<string | null>(null);
 
+  // Force clear query cache on mount to bypass 500 error caching
+  useEffect(() => {
+    console.log('🧹 Clearing quest cache to force fresh requests...');
+    queryClient.removeQueries({ queryKey: ['quests'] });
+    queryClient.clear(); // Nuclear option - clear all cache
+  }, [queryClient]);
+
   // Trivia state
   const [triviaSession, setTriviaSession] = useState<{
     sessionId: string;
@@ -30,13 +37,18 @@ export default function QuestsPage() {
   } | null>(null);
 
   const { data: quests, refetch, isLoading, error } = useQuery({
-    queryKey: ['quests', Date.now()], // Cache busting key
-    queryFn: api.quests.list,
+    queryKey: ['quests'], // Simplified key
+    queryFn: () => {
+      console.log('🚀 Making fresh quest API request...');
+      return api.quests.list();
+    },
     refetchInterval: 10000,
     retry: 3,
     retryDelay: 1000,
     staleTime: 0, // Force fresh requests
     cacheTime: 0, // Don't cache responses
+    refetchOnMount: 'always', // Always refetch when component mounts
+    refetchOnWindowFocus: true, // Refetch when window regains focus
   });
 
   // Debug logging
