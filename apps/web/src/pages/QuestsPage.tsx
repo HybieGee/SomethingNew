@@ -15,6 +15,8 @@ interface TriviaQuestion {
 export default function QuestsPage() {
   const queryClient = useQueryClient();
   const updateTickets = useAuthStore((state) => state.updateTickets);
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [tapCount, setTapCount] = useState(0);
   const [tapping, setTapping] = useState(false);
   const [activeQuestSlug, setActiveQuestSlug] = useState<string | null>(null);
@@ -39,6 +41,8 @@ export default function QuestsPage() {
   console.log('Quests data:', quests);
   console.log('Quests error:', error);
   console.log('Quests loading:', isLoading);
+  console.log('Auth state - user:', user);
+  console.log('Auth state - isAuthenticated:', isAuthenticated);
 
   const handleSolanaPrediction = async (questSlug: string, choice: 'up' | 'down') => {
     try {
@@ -229,6 +233,8 @@ export default function QuestsPage() {
 
   // Show error state
   if (error) {
+    const isAuthError = error instanceof Error && (error.message.includes('Unauthorized') || error.message.includes('401'));
+
     return (
       <div className="space-y-6">
         <div className="text-center mb-8">
@@ -236,16 +242,66 @@ export default function QuestsPage() {
           <p className="text-gray-400">Complete challenges to earn tickets!</p>
         </div>
         <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-6 text-center">
-          <h2 className="text-xl font-bold text-red-400 mb-2">Failed to Load Quests</h2>
+          <h2 className="text-xl font-bold text-red-400 mb-2">
+            {isAuthError ? 'Authentication Error' : 'Failed to Load Quests'}
+          </h2>
           <p className="text-red-300 mb-4">
-            {error instanceof Error ? error.message : 'Unknown error occurred'}
+            {isAuthError ?
+              'Your session has expired. Please refresh the page and log in again.' :
+              (error instanceof Error ? error.message : 'Unknown error occurred')
+            }
+          </p>
+          <div className="space-y-2">
+            <button
+              onClick={() => refetch()}
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors mr-2"
+            >
+              Try Again
+            </button>
+            {isAuthError && (
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+              >
+                Refresh Page
+              </button>
+            )}
+          </div>
+          <div className="mt-4 p-3 bg-gray-800/50 rounded text-xs text-gray-400 text-left">
+            <strong>Debug Info:</strong><br />
+            Error: {error instanceof Error ? error.message : 'Unknown error'}<br />
+            Auth State: {isAuthenticated ? 'Authenticated' : 'Not Authenticated'}<br />
+            User: {user ? `${user.username} (${user.tickets} tickets)` : 'No user data'}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show authentication required state
+  if (!isAuthenticated) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">Quick Quests</h1>
+          <p className="text-gray-400">Complete challenges to earn tickets!</p>
+        </div>
+        <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-6 text-center">
+          <h2 className="text-xl font-bold text-yellow-400 mb-2">Authentication Required</h2>
+          <p className="text-yellow-300 mb-4">
+            Please log in to access quests and earn tickets!
           </p>
           <button
-            onClick={() => refetch()}
-            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+            onClick={() => window.location.href = '/'}
+            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition-colors"
           >
-            Try Again
+            Go to Login
           </button>
+          <div className="mt-4 p-3 bg-gray-800/50 rounded text-xs text-gray-400 text-left">
+            <strong>Debug Info:</strong><br />
+            Auth State: Not Authenticated<br />
+            User: No user data
+          </div>
         </div>
       </div>
     );
@@ -261,7 +317,13 @@ export default function QuestsPage() {
         </div>
         <div className="bg-arcade-dark/50 border border-white/20 rounded-lg p-6 text-center">
           <h2 className="text-xl font-bold mb-2">No Quests Available</h2>
-          <p className="text-gray-400">Check back later for new quests!</p>
+          <p className="text-gray-400 mb-4">Check back later for new quests!</p>
+          <div className="mt-4 p-3 bg-gray-800/50 rounded text-xs text-gray-400 text-left">
+            <strong>Debug Info:</strong><br />
+            Auth State: {isAuthenticated ? 'Authenticated' : 'Not Authenticated'}<br />
+            User: {user ? `${user.username} (${user.tickets} tickets)` : 'No user data'}<br />
+            Quests Response: {JSON.stringify(quests)}
+          </div>
         </div>
       </div>
     );
