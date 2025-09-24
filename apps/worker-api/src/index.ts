@@ -9,6 +9,7 @@ import { adminRouter } from './routes/admin';
 import { publicRouter } from './routes/public';
 import { seedRouter } from './routes/seed';
 import { factionRouter } from './routes/factions';
+import { generalRateLimit } from './middleware/rateLimit';
 import { RaffleDO } from './durable-objects/RaffleDO';
 import type { Env } from './types';
 
@@ -32,6 +33,14 @@ app.use('*', cors({
   exposeHeaders: ['Set-Cookie']
 }));
 
+// Apply general rate limiting to all routes except static/health check
+app.use('*', (c, next) => {
+  if (c.req.path === '/' && c.req.method === 'GET') {
+    return next(); // Skip rate limiting for health check
+  }
+  return generalRateLimit(c, next);
+});
+
 app.use('*', async (c, next) => {
   c.header('X-Content-Type-Options', 'nosniff');
   c.header('X-Frame-Options', 'DENY');
@@ -39,7 +48,7 @@ app.use('*', async (c, next) => {
 });
 
 app.get('/', (c) => c.json({
-  name: 'RAFFLE Arcade API',
+  name: 'PairCade API',
   version: '1.0.0',
   status: 'operational'
 }));

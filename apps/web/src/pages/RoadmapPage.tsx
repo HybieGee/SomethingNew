@@ -349,7 +349,7 @@ export default function RoadmapPage() {
           </h3>
           <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
             Be part of the future of crypto gaming. Start earning tickets today and shape the development
-            of RAFFLE Arcade through community feedback and governance participation.
+            of PairCade through community feedback and governance participation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/auth">

@@ -3,11 +3,13 @@ import { authMiddleware } from '../middleware/auth';
 import { CompleteQuestSchema, GAME_CONFIG, generateId } from '../shared/index';
 import { getSolanaPrice, storePricePrediction, checkPredictionResult } from '../services/solana-price';
 import { getRandomQuestions, calculateTriviaReward } from '../services/trivia';
+import { questRateLimit } from '../middleware/rateLimit';
+import { questsCache } from '../middleware/cache';
 import type { Env } from '../types';
 
 export const questRouter = new Hono<{ Bindings: Env }>();
 
-questRouter.get('/', authMiddleware, async (c) => {
+questRouter.get('/', authMiddleware, questsCache, async (c) => {
   try {
     console.log('🔍 Quest endpoint hit - user authenticated:', !!c.get('user'));
     const user = c.get('user');
@@ -238,7 +240,7 @@ questRouter.get('/prediction/check', authMiddleware, async (c) => {
   });
 });
 
-questRouter.post('/complete', authMiddleware, async (c) => {
+questRouter.post('/complete', authMiddleware, questRateLimit, async (c) => {
   try {
     const user = c.get('user');
     const body = await c.req.json();
@@ -279,7 +281,7 @@ questRouter.post('/complete', authMiddleware, async (c) => {
       case 'up_down_call':
         // Handle Solana prediction
         if (quest.slug === 'solana_prediction' && data.choice) {
-          const currentPrice = await getSolanaPrice();
+          const currentPrice = await getSolanaPrice(c.env.CACHE);
           await storePricePrediction(
             c.env,
             user.id,

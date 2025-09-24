@@ -2,15 +2,17 @@ import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
 import { UpdateAddressSchema } from '../shared/index';
 import { calculateDailyReward, GAME_CONFIG, generateId } from '../shared/index';
+import { dailyRewardRateLimit } from '../middleware/rateLimit';
+import { leaderboardCache, profileCache } from '../middleware/cache';
 import type { Env } from '../types';
 
 export const profileRouter = new Hono<{ Bindings: Env }>();
 
-profileRouter.get('/me', authMiddleware, async (c) => {
+profileRouter.get('/me', authMiddleware, profileCache, async (c) => {
   const user = c.get('user');
 
   const profile = await c.env.DB.prepare(`
-    SELECT u.id, u.username, u.tickets, u.streak_days, u.solana_address, u.created_at, u.last_login_at,
+    SELECT u.id, u.username, u.tickets, u.streak_days, u.solana_address, u.created_at, u.last_login_at, u.last_daily_claim_at,
       (SELECT COUNT(*) FROM user_badges WHERE user_id = u.id) as badge_count,
       (SELECT COUNT(*) FROM quest_completions WHERE user_id = u.id AND date(completed_at) = date('now')) as quests_today
     FROM users u
@@ -41,7 +43,7 @@ profileRouter.get('/me', authMiddleware, async (c) => {
   });
 });
 
-profileRouter.post('/me/daily', authMiddleware, async (c) => {
+profileRouter.post('/me/daily', authMiddleware, dailyRewardRateLimit, async (c) => {
   try {
     const user = c.get('user');
 
@@ -123,7 +125,7 @@ profileRouter.post('/me/address', authMiddleware, async (c) => {
   }
 });
 
-profileRouter.get('/leaderboard', async (c) => {
+profileRouter.get('/leaderboard', leaderboardCache, async (c) => {
   const season = c.req.query('season') || 'current';
 
   const leaderboard = await c.env.DB.prepare(`

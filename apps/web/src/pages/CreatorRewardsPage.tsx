@@ -98,7 +98,7 @@ export default function CreatorRewardsPage() {
 
             <p className="text-xl text-gray-300 mb-8 leading-relaxed">
               Our revolutionary reward system connects faction growth and success
-              directly to member rewards in RAFFLE Arcade. The more your faction grows,
+              directly to member rewards in PairCade. The more your faction grows,
               the bigger your rewards become.
             </p>
 

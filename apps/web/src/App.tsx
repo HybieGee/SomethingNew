@@ -14,6 +14,7 @@ import LeaderboardPage from '@/pages/LeaderboardPage';
 import AdminPage from '@/pages/AdminPage';
 import FactionsPage from '@/pages/FactionsPage';
 import RoadmapPage from '@/pages/RoadmapPage';
+import ConversionPage from '@/pages/ConversionPage';
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -112,6 +113,18 @@ function App() {
           isAuthenticated ? (
             <Layout>
               <FactionsPage />
+            </Layout>
+          ) : (
+            <Navigate to="/auth" />
+          )
+        }
+      />
+      <Route
+        path="/conversion"
+        element={
+          isAuthenticated ? (
+            <Layout>
+              <ConversionPage />
             </Layout>
           ) : (
             <Navigate to="/auth" />

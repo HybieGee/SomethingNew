@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy, Gamepad2, Gift, ShoppingBag, User, BarChart3, Sparkles, Shield, Calendar } from 'lucide-react';
+import { Trophy, Gamepad2, Gift, ShoppingBag, User, BarChart3, Sparkles, Shield, Calendar, Coins } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 const navItems = [
@@ -8,6 +8,7 @@ const navItems = [
   { path: '/quests', label: 'Quests', icon: Sparkles },
   { path: '/raffles', label: 'Raffles', icon: Gift },
   { path: '/factions', label: 'Factions', icon: Shield },
+  { path: '/conversion', label: 'Conversion', icon: Coins },
   { path: '/store', label: 'Store', icon: ShoppingBag },
   { path: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { path: '/roadmap', label: 'Roadmap', icon: Calendar },
@@ -23,18 +24,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <header className="border-b border-white/10 bg-arcade-dark/50 backdrop-blur">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                className="text-3xl"
-              >
-                🎰
-              </motion.div>
+            <Link to="/" className="flex items-center gap-3">
+              <img
+                src="/assets/icons/PairLogo.png"
+                alt="PairCade Logo"
+                className="w-8 h-8 object-contain"
+              />
               <h1 className="text-2xl font-bold arcade-gradient bg-clip-text text-transparent">
-                RAFFLE Arcade
+                PairCade
               </h1>
             </Link>
+
+            {/* CA Display - Hidden by default, can be shown when coin goes live */}
+            <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg">
+              <span className="text-sm text-yellow-300">CA:</span>
+              <code className="text-xs font-mono text-yellow-200 bg-black/20 px-2 py-1 rounded">
+                Coming Soon...
+              </code>
+            </div>
 
             <div className="flex items-center gap-6">
               {user && (

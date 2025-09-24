@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { RegisterSchema, LoginSchema, generateId, GAME_CONFIG } from '../shared/index';
+import { authRateLimit } from '../middleware/rateLimit';
 import type { Env } from '../types';
 
 async function hashPassword(password: string): Promise<string> {
@@ -13,7 +14,7 @@ async function hashPassword(password: string): Promise<string> {
 
 export const authRouter = new Hono<{ Bindings: Env }>();
 
-authRouter.post('/register', async (c) => {
+authRouter.post('/register', authRateLimit, async (c) => {
   try {
     const body = await c.req.json();
     const data = RegisterSchema.parse(body);
@@ -64,7 +65,7 @@ authRouter.post('/register', async (c) => {
   }
 });
 
-authRouter.post('/login', async (c) => {
+authRouter.post('/login', authRateLimit, async (c) => {
   try {
     const body = await c.req.json();
     const data = LoginSchema.parse(body);

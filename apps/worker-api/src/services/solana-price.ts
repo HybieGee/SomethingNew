@@ -4,11 +4,37 @@ interface PriceData {
   timestamp: number;
 }
 
-export async function getSolanaPrice(): Promise<number> {
+export async function getSolanaPrice(cache?: any): Promise<number> {
+  // Try to get cached price first
+  if (cache) {
+    try {
+      const cached = await cache.get('solana:price', 'json') as PriceData | null;
+      if (cached && (Date.now() - cached.timestamp) < 60000) { // 1 minute cache
+        return cached.price;
+      }
+    } catch (error) {
+      console.error('Cache read error for Solana price:', error);
+    }
+  }
+
   try {
     const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
     const data = await response.json() as { solana: { usd: number } };
-    return data.solana.usd;
+    const price = data.solana.usd;
+
+    // Cache the price
+    if (cache) {
+      try {
+        await cache.put('solana:price', JSON.stringify({
+          price,
+          timestamp: Date.now()
+        }), { expirationTtl: 120 }); // 2 minute expiration
+      } catch (error) {
+        console.error('Cache write error for Solana price:', error);
+      }
+    }
+
+    return price;
   } catch (error) {
     console.error('Failed to fetch Solana price:', error);
     // Fallback to a default price if API fails
@@ -87,7 +113,7 @@ export async function checkPredictionResult(
     return { success: false, message: `Prediction still active. Check back in ${remainingMinutes} minutes` };
   }
 
-  const currentPrice = await getSolanaPrice();
+  const currentPrice = await getSolanaPrice(env.CACHE);
   const priceDiff = currentPrice - predictionData.initialPrice;
   const actualDirection = priceDiff > 0 ? 'up' : 'down';
   const won = actualDirection === predictionData.prediction;

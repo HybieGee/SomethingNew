@@ -30,7 +30,34 @@ export default function HomePage() {
     queryFn: api.factions.me,
   });
 
+  // Check if daily reward has been claimed today
+  const canClaimDaily = () => {
+    if (!profile?.profile?.last_daily_claim_at) return true;
+
+    const lastClaim = new Date(profile.profile.last_daily_claim_at);
+    const now = new Date();
+    const hoursSinceLastClaim = (now.getTime() - lastClaim.getTime()) / (1000 * 60 * 60);
+
+    return hoursSinceLastClaim >= 24;
+  };
+
+  const getTimeUntilNextClaim = () => {
+    if (!profile?.profile?.last_daily_claim_at) return 0;
+
+    const lastClaim = new Date(profile.profile.last_daily_claim_at);
+    const now = new Date();
+    const hoursSinceLastClaim = (now.getTime() - lastClaim.getTime()) / (1000 * 60 * 60);
+
+    return Math.max(0, Math.ceil(24 - hoursSinceLastClaim));
+  };
+
   const handleClaimDaily = async () => {
+    if (!canClaimDaily()) {
+      const hoursLeft = getTimeUntilNextClaim();
+      toast.error(`Already claimed! Next claim in ${hoursLeft} hours`);
+      return;
+    }
+
     try {
       const result = await api.profile.claimDaily();
       updateTickets(result.newTickets);
@@ -124,12 +151,21 @@ export default function HomePage() {
       </div>
 
       <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: canClaimDaily() ? 1.05 : 1 }}
+        whileTap={{ scale: canClaimDaily() ? 0.95 : 1 }}
         onClick={handleClaimDaily}
-        className="w-full py-6 rounded-xl arcade-gradient font-bold text-xl text-white hover:opacity-90 transition-opacity"
+        disabled={!canClaimDaily()}
+        className={`w-full py-6 rounded-xl font-bold text-xl transition-all ${
+          canClaimDaily()
+            ? 'arcade-gradient text-white hover:opacity-90 cursor-pointer'
+            : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+        }`}
       >
-        Claim Daily Reward 🎁
+        {canClaimDaily() ? (
+          'Claim Daily Reward 🎁'
+        ) : (
+          `Claimed ✓ (${getTimeUntilNextClaim()}h until next)`
+        )}
       </motion.button>
 
       <div className="grid md:grid-cols-3 gap-6">

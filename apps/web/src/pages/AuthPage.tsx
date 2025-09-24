@@ -60,7 +60,7 @@ export default function AuthPage() {
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            RAFFLE Arcade
+            PairCade
           </motion.h1>
           <p className="text-gray-400">Win Big, Play Quick!</p>
         </div>
