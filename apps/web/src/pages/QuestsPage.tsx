@@ -78,7 +78,7 @@ export default function QuestsPage() {
           >
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-xl font-bold mb-1">{quest.name}</h3>
+                <h3 className="text-xl font-bold mb-1">{quest.title}</h3>
                 <p className="text-gray-400 text-sm">{quest.description}</p>
               </div>
               <div className="text-right">

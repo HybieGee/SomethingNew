@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
-import { CompleteQuestSchema, GAME_CONFIG } from '../shared/index';
+import { CompleteQuestSchema, GAME_CONFIG, generateId } from '../shared/index';
 import type { Env } from '../types';
 
 export const questRouter = new Hono<{ Bindings: Env }>();
@@ -152,33 +152,31 @@ async function completeQuestTransaction(
 
   const newTickets = userInfo.tickets + reward;
 
-  await db.batch([
-    db.prepare(`
-      UPDATE users SET tickets = ? WHERE id = ?
-    `).bind(newTickets, userId),
+  await db.prepare(`
+    UPDATE users SET tickets = ? WHERE id = ?
+  `).bind(newTickets, userId).run();
 
-    db.prepare(`
-      INSERT INTO quest_completions (id, user_id, quest_id, tickets_earned, result)
-      VALUES (?, ?, ?, ?, ?)
-    `).bind(
-      crypto.randomUUID(),
-      userId,
-      questId,
-      reward,
-      JSON.stringify(result)
-    ),
+  await db.prepare(`
+    INSERT INTO quest_completions (id, user_id, quest_id, tickets_earned, result, completed_at)
+    VALUES (?, ?, ?, ?, ?, datetime('now'))
+  `).bind(
+    generateId(),
+    userId,
+    questId,
+    reward,
+    JSON.stringify(result)
+  ).run();
 
-    db.prepare(`
-      INSERT INTO earn_log (id, user_id, amount, source, metadata)
-      VALUES (?, ?, ?, ?, ?)
-    `).bind(
-      crypto.randomUUID(),
-      userId,
-      reward,
-      'quest_completion',
-      JSON.stringify({ questId, result })
-    )
-  ]);
+  await db.prepare(`
+    INSERT INTO earn_log (id, user_id, amount, source, metadata)
+    VALUES (?, ?, ?, ?, ?)
+  `).bind(
+    generateId(),
+    userId,
+    reward,
+    'quest_completion',
+    JSON.stringify({ questId, result })
+  ).run();
 }
 
 async function fetchCoinPrice(): Promise<number> {

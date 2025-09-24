@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { authMiddleware } from '../middleware/auth';
 import { UpdateAddressSchema } from '../shared/index';
-import { calculateDailyReward, GAME_CONFIG } from '../shared/index';
+import { calculateDailyReward, GAME_CONFIG, generateId } from '../shared/index';
 import type { Env } from '../types';
 
 export const profileRouter = new Hono<{ Bindings: Env }>();
@@ -10,7 +10,7 @@ profileRouter.get('/me', authMiddleware, async (c) => {
   const user = c.get('user');
 
   const profile = await c.env.DB.prepare(`
-    SELECT u.*,
+    SELECT u.id, u.username, u.tickets, u.streak_days, u.solana_address, u.created_at, u.last_login_at,
       (SELECT COUNT(*) FROM user_badges WHERE user_id = u.id) as badge_count,
       (SELECT COUNT(*) FROM quest_completions WHERE user_id = u.id AND date(completed_at) = date('now')) as quests_today
     FROM users u
@@ -66,23 +66,21 @@ profileRouter.post('/me/daily', authMiddleware, async (c) => {
   const reward = calculateDailyReward(GAME_CONFIG.DAILY_REWARD_BASE, streakDays);
   const newTickets = userInfo.tickets + reward;
 
-  await c.env.DB.batch([
-    c.env.DB.prepare(`
-      UPDATE users
-      SET tickets = ?, streak_days = ?, last_daily_claim_at = datetime('now')
-      WHERE id = ?
-    `).bind(newTickets, streakDays, user.id),
+  await c.env.DB.prepare(`
+    UPDATE users
+    SET tickets = ?, streak_days = ?, last_daily_claim_at = datetime('now')
+    WHERE id = ?
+  `).bind(newTickets, streakDays, user.id).run();
 
-    c.env.DB.prepare(`
-      INSERT INTO earn_log (id, user_id, amount, source, metadata)
-      VALUES (?, ?, ?, 'daily_reward', ?)
-    `).bind(
-      crypto.randomUUID(),
-      user.id,
-      reward,
-      JSON.stringify({ streakDays })
-    )
-  ]);
+  await c.env.DB.prepare(`
+    INSERT INTO earn_log (id, user_id, amount, source, metadata)
+    VALUES (?, ?, ?, 'daily_reward', ?)
+  `).bind(
+    generateId(),
+    user.id,
+    reward,
+    JSON.stringify({ streakDays })
+  ).run();
 
   return c.json({
     success: true,
