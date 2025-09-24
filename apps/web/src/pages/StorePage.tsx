@@ -16,7 +16,7 @@ const customItemIcons: Record<string, string> = {
   'rainbow_badge': '/assets/icons/Rainbow Badge.png',
   'skip_cooldown': '/assets/icons/SkipCooldown.png',
   'double_tickets': '/assets/icons/DoubleTicket.png',
-  'extra_raffle_entry': '/assets/icons/ExtraRaffle.png',
+  'extra_raffle': '/assets/icons/ExtraRaffle.png',
 };
 
 export default function StorePage() {
