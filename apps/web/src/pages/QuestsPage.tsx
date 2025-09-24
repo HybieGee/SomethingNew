@@ -27,11 +27,18 @@ export default function QuestsPage() {
     currentQuestion: number;
   } | null>(null);
 
-  const { data: quests, refetch } = useQuery({
+  const { data: quests, refetch, isLoading, error } = useQuery({
     queryKey: ['quests'],
     queryFn: api.quests.list,
     refetchInterval: 10000,
+    retry: 3,
+    retryDelay: 1000,
   });
+
+  // Debug logging
+  console.log('Quests data:', quests);
+  console.log('Quests error:', error);
+  console.log('Quests loading:', isLoading);
 
   const handleSolanaPrediction = async (questSlug: string, choice: 'up' | 'down') => {
     try {
@@ -204,6 +211,61 @@ export default function QuestsPage() {
     const seconds = Math.floor((ms % 60000) / 1000);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">Quick Quests</h1>
+          <p className="text-gray-400">Loading quests...</p>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-arcade-purple"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">Quick Quests</h1>
+          <p className="text-gray-400">Complete challenges to earn tickets!</p>
+        </div>
+        <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-6 text-center">
+          <h2 className="text-xl font-bold text-red-400 mb-2">Failed to Load Quests</h2>
+          <p className="text-red-300 mb-4">
+            {error instanceof Error ? error.message : 'Unknown error occurred'}
+          </p>
+          <button
+            onClick={() => refetch()}
+            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show no quests state
+  if (!quests?.quests || quests.quests.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold mb-2">Quick Quests</h1>
+          <p className="text-gray-400">Complete challenges to earn tickets!</p>
+        </div>
+        <div className="bg-arcade-dark/50 border border-white/20 rounded-lg p-6 text-center">
+          <h2 className="text-xl font-bold mb-2">No Quests Available</h2>
+          <p className="text-gray-400">Check back later for new quests!</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
