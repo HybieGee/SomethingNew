@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy, Gamepad2, Gift, ShoppingBag, User, BarChart3, Sparkles, Shield } from 'lucide-react';
+import { Trophy, Gamepad2, Gift, ShoppingBag, User, BarChart3, Sparkles, Shield, Calendar } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 const navItems = [
@@ -10,6 +10,7 @@ const navItems = [
   { path: '/factions', label: 'Factions', icon: Shield },
   { path: '/store', label: 'Store', icon: ShoppingBag },
   { path: '/leaderboard', label: 'Leaderboard', icon: Trophy },
+  { path: '/roadmap', label: 'Roadmap', icon: Calendar },
   { path: '/profile', label: 'Profile', icon: User },
 ];
 
@@ -41,7 +42,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <div className="text-right">
                     <p className="text-sm text-gray-400">Tickets</p>
                     <p className="text-xl font-bold text-arcade-yellow">
-                      {user.tickets.toLocaleString()}
+                      🎫 {user.tickets.toLocaleString()}
                     </p>
                   </div>
                   <div className="text-right">

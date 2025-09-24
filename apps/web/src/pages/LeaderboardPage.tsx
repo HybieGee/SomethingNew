@@ -56,7 +56,7 @@ export default function LeaderboardPage() {
             </span>
           </h1>
           <p className="text-xl text-gray-300 mb-8">
-            Compete for the ultimate bragging rights and seasonal rewards
+            Compete for Creator fee Reward Prize Pool
           </p>
 
           {/* Season Info */}

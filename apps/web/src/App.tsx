@@ -13,6 +13,7 @@ import ProfilePage from '@/pages/ProfilePage';
 import LeaderboardPage from '@/pages/LeaderboardPage';
 import AdminPage from '@/pages/AdminPage';
 import FactionsPage from '@/pages/FactionsPage';
+import RoadmapPage from '@/pages/RoadmapPage';
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -29,6 +30,7 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/leaderboard" element={<LeaderboardPage />} />
+      <Route path="/roadmap" element={<RoadmapPage />} />
       <Route path="/creator-rewards" element={<CreatorRewardsPage />} />
 
       {/* Protected routes - require authentication */}
