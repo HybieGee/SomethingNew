@@ -12,6 +12,7 @@ import StorePage from '@/pages/StorePage';
 import ProfilePage from '@/pages/ProfilePage';
 import LeaderboardPage from '@/pages/LeaderboardPage';
 import AdminPage from '@/pages/AdminPage';
+import FactionsPage from '@/pages/FactionsPage';
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -99,6 +100,18 @@ function App() {
           isAuthenticated ? (
             <Layout>
               <AdminPage />
+            </Layout>
+          ) : (
+            <Navigate to="/auth" />
+          )
+        }
+      />
+      <Route
+        path="/factions"
+        element={
+          isAuthenticated ? (
+            <Layout>
+              <FactionsPage />
             </Layout>
           ) : (
             <Navigate to="/auth" />

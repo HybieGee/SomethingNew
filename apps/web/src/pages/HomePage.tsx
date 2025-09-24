@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
-import { Gift, Sparkles, Trophy, Timer, TrendingUp } from 'lucide-react';
+import { Gift, Sparkles, Trophy, Timer, TrendingUp, Shield } from 'lucide-react';
 
 export default function HomePage() {
   const user = useAuthStore((state) => state.user);
@@ -14,6 +14,11 @@ export default function HomePage() {
     queryKey: ['profile'],
     queryFn: api.profile.me,
     refetchInterval: 30000,
+  });
+
+  const { data: userFaction } = useQuery({
+    queryKey: ['userFaction'],
+    queryFn: api.factions.me,
   });
 
   const handleClaimDaily = async () => {
@@ -52,6 +57,32 @@ export default function HomePage() {
           <p className="text-sm text-arcade-green/80">
             Ends at {new Date(profile.activeBoost.end_time).toLocaleTimeString()}
           </p>
+        </motion.div>
+      )}
+
+      {!userFaction?.faction && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-6 bg-gradient-to-r from-arcade-purple/20 to-arcade-blue/20 border border-arcade-purple/50 rounded-lg"
+        >
+          <div className="flex items-start gap-4">
+            <Shield className="text-arcade-purple mt-1" size={24} />
+            <div className="flex-1">
+              <h3 className="text-xl font-bold text-white mb-2">Join a Faction!</h3>
+              <p className="text-gray-300 mb-4">
+                Choose your faction to earn bonus multipliers and support your favorite tokens.
+                Each faction offers unique benefits and increased rewards!
+              </p>
+              <Link
+                to="/factions"
+                className="inline-flex items-center gap-2 px-6 py-3 arcade-gradient rounded-lg text-white font-semibold hover:opacity-90 transition-opacity"
+              >
+                <Shield size={18} />
+                Choose Faction
+              </Link>
+            </div>
+          </div>
         </motion.div>
       )}
 

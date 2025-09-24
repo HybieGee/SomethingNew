@@ -1,12 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy, Gamepad2, Gift, ShoppingBag, User, BarChart3, Sparkles } from 'lucide-react';
+import { Trophy, Gamepad2, Gift, ShoppingBag, User, BarChart3, Sparkles, Shield } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 const navItems = [
   { path: '/', label: 'Home', icon: Gamepad2 },
   { path: '/quests', label: 'Quests', icon: Sparkles },
   { path: '/raffles', label: 'Raffles', icon: Gift },
+  { path: '/factions', label: 'Factions', icon: Shield },
   { path: '/store', label: 'Store', icon: ShoppingBag },
   { path: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { path: '/profile', label: 'Profile', icon: User },

@@ -78,7 +78,63 @@ seedRouter.post('/quests', async (c) => {
   }
 });
 
-// Note: Factions table doesn't exist yet - will be created later for faction system
+seedRouter.post('/factions', async (c) => {
+  try {
+    const factions = [
+      {
+        id: generateId(),
+        name: 'USD1 Faction',
+        symbol: 'USD1',
+        description: 'The stability seekers - earn bonus rewards for USD-backed tokens',
+        bonus_multiplier: 1.2,
+        color: '#10B981' // green
+      },
+      {
+        id: generateId(),
+        name: 'BONK Faction',
+        symbol: 'BONK',
+        description: 'The meme warriors - double rewards for viral token success',
+        bonus_multiplier: 1.5,
+        color: '#F59E0B' // yellow/orange
+      },
+      {
+        id: generateId(),
+        name: 'PUMP Faction',
+        symbol: 'PUMP',
+        description: 'The trend riders - maximum multipliers for trending tokens',
+        bonus_multiplier: 2.0,
+        color: '#EF4444' // red
+      },
+      {
+        id: generateId(),
+        name: 'BSC Faction',
+        symbol: 'BSC',
+        description: 'The builders - consistent rewards for ecosystem growth',
+        bonus_multiplier: 1.3,
+        color: '#8B5CF6' // purple
+      }
+    ];
+
+    for (const faction of factions) {
+      await c.env.DB.prepare(`
+        INSERT OR REPLACE INTO factions (id, name, symbol, description, bonus_multiplier, color)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).bind(
+        faction.id,
+        faction.name,
+        faction.symbol,
+        faction.description,
+        faction.bonus_multiplier,
+        faction.color
+      ).run();
+    }
+
+    return c.json({ success: true, message: 'Factions seeded successfully', count: factions.length });
+  } catch (error: any) {
+    console.error('Faction seeding error:', error);
+    return c.json({ error: 'Failed to seed factions', details: error.message }, 500);
+  }
+});
 
 seedRouter.post('/raffles', async (c) => {
   try {

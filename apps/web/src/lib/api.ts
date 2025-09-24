@@ -87,6 +87,17 @@ export const api = {
       }),
   },
 
+  factions: {
+    list: () => fetchApi('/factions'),
+    join: (factionId: string) =>
+      fetchApi('/factions/join', {
+        method: 'POST',
+        body: JSON.stringify({ factionId }),
+      }),
+    me: () => fetchApi('/factions/me'),
+    leave: () => fetchApi('/factions/leave', { method: 'POST' }),
+  },
+
   admin: {
     claim: (data: any) =>
       fetchApi('/admin/claim', {
