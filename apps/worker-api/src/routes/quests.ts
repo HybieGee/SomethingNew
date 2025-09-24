@@ -8,7 +8,10 @@ import type { Env } from '../types';
 export const questRouter = new Hono<{ Bindings: Env }>();
 
 questRouter.get('/', authMiddleware, async (c) => {
-  const user = c.get('user');
+  try {
+    console.log('🔍 Quest endpoint hit - user authenticated:', !!c.get('user'));
+    const user = c.get('user');
+    console.log('🔍 User ID:', user?.id);
 
   const quests = await c.env.DB.prepare(`
     SELECT * FROM quests WHERE active = true
@@ -73,7 +76,12 @@ questRouter.get('/', authMiddleware, async (c) => {
     };
   }));
 
+  console.log('🔍 Returning quests count:', questsWithCooldown.length);
   return c.json({ quests: questsWithCooldown });
+  } catch (error) {
+    console.error('❌ Quest endpoint error:', error);
+    return c.json({ error: 'Failed to load quests', details: error.message }, 500);
+  }
 });
 
 // Get trivia questions
