@@ -21,11 +21,10 @@ export default function QuestsPage() {
   const [tapping, setTapping] = useState(false);
   const [activeQuestSlug, setActiveQuestSlug] = useState<string | null>(null);
 
-  // Force clear query cache on mount to bypass 500 error caching
+  // Clear only quest cache on mount to bypass 500 error caching
   useEffect(() => {
     console.log('🧹 Clearing quest cache to force fresh requests...');
     queryClient.removeQueries({ queryKey: ['quests'] });
-    queryClient.clear(); // Nuclear option - clear all cache
   }, [queryClient]);
 
   // Trivia state
