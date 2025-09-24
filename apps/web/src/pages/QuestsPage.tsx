@@ -45,7 +45,7 @@ export default function QuestsPage() {
 
   const handleCheckPrediction = async (questSlug: string) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://raffle-arcade-api.claudechaindev.workers.dev'}/quests/prediction/check?quest=${questSlug}`, {
+      const response = await fetch(`https://raffle-arcade-api.claudechaindev.workers.dev/quests/prediction/check?quest=${questSlug}`, {
         credentials: 'include'
       });
       const result = await response.json();
@@ -92,7 +92,7 @@ export default function QuestsPage() {
 
   const startTrivia = async (questSlug: string) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://raffle-arcade-api.claudechaindev.workers.dev'}/quests/trivia`, {
+      const response = await fetch('https://raffle-arcade-api.claudechaindev.workers.dev/quests/trivia', {
         credentials: 'include'
       });
       const data = await response.json();
@@ -131,7 +131,7 @@ export default function QuestsPage() {
     if (!triviaSession || !activeQuestSlug) return;
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://raffle-arcade-api.claudechaindev.workers.dev'}/quests/trivia/submit`, {
+      const response = await fetch('https://raffle-arcade-api.claudechaindev.workers.dev/quests/trivia/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
