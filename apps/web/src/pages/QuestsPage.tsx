@@ -30,11 +30,13 @@ export default function QuestsPage() {
   } | null>(null);
 
   const { data: quests, refetch, isLoading, error } = useQuery({
-    queryKey: ['quests'],
+    queryKey: ['quests', Date.now()], // Cache busting key
     queryFn: api.quests.list,
     refetchInterval: 10000,
     retry: 3,
     retryDelay: 1000,
+    staleTime: 0, // Force fresh requests
+    cacheTime: 0, // Don't cache responses
   });
 
   // Debug logging
