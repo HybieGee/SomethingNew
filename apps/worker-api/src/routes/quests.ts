@@ -70,11 +70,34 @@ questRouter.get('/', authMiddleware, questsCache, async (c) => {
       }
     }
 
+    // Check for faction loyalty tracking
+    let factionLoyaltyProgress = null;
+    if (quest.slug === 'faction_loyalty') {
+      const activeTracking = await c.env.DB.prepare(`
+        SELECT * FROM faction_loyalty_tracking
+        WHERE user_id = ? AND quest_id = ? AND completed = FALSE
+      `).bind(user.id, quest.id).first<any>();
+
+      if (activeTracking) {
+        const startTime = new Date(activeTracking.started_at);
+        const now = new Date();
+        const hoursElapsed = (now.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+        const hoursRemaining = Math.ceil(24 - hoursElapsed);
+
+        factionLoyaltyProgress = {
+          inProgress: true,
+          hoursRemaining: Math.max(0, hoursRemaining),
+          canClaim: hoursElapsed >= 24
+        };
+      }
+    }
+
     return {
       ...quest,
       cooldownRemaining,
       available: cooldownRemaining === 0,
-      activePrediction
+      activePrediction,
+      factionLoyaltyProgress
     };
   }));
 
@@ -135,14 +158,27 @@ questRouter.post('/trivia/submit', authMiddleware, async (c) => {
     });
 
     // Calculate reward
-    const reward = calculateTriviaReward(correctCount, questions.length);
+    const baseReward = calculateTriviaReward(correctCount, questions.length);
+
+    // Apply faction multiplier to reward
+    let finalReward = baseReward;
+    const userFaction = await c.env.DB.prepare(`
+      SELECT f.bonus_multiplier
+      FROM user_factions uf
+      JOIN factions f ON uf.faction_id = f.id
+      WHERE uf.user_id = ?
+    `).bind(user.id).first<any>();
+
+    if (userFaction && userFaction.bonus_multiplier) {
+      finalReward = Math.floor(baseReward * userFaction.bonus_multiplier);
+    }
 
     // Update user tickets
     const userInfo = await c.env.DB.prepare(`
       SELECT tickets FROM users WHERE id = ?
     `).bind(user.id).first<any>();
 
-    const newTickets = (userInfo?.tickets || 0) + reward;
+    const newTickets = (userInfo?.tickets || 0) + finalReward;
 
     await c.env.DB.prepare(`
       UPDATE users SET tickets = ? WHERE id = ?
@@ -161,7 +197,7 @@ questRouter.post('/trivia/submit', authMiddleware, async (c) => {
         generateId(),
         user.id,
         quest.id,
-        reward,
+        finalReward,
         JSON.stringify({ correct: correctCount, total: questions.length })
       ).run();
     }
@@ -173,7 +209,7 @@ questRouter.post('/trivia/submit', authMiddleware, async (c) => {
       success: true,
       correctAnswers: correctCount,
       totalQuestions: questions.length,
-      reward,
+      reward: finalReward,
       newTickets,
       results: questions.map((q: any, i: number) => ({
         correct: answers[i] === q.correctAnswer,
@@ -203,12 +239,25 @@ questRouter.get('/prediction/check', authMiddleware, async (c) => {
   const result = await checkPredictionResult(c.env, user.id, quest.id);
 
   if (result.success && result.reward) {
+    // Apply faction multiplier to reward
+    let finalReward = result.reward;
+    const userFaction = await c.env.DB.prepare(`
+      SELECT f.bonus_multiplier
+      FROM user_factions uf
+      JOIN factions f ON uf.faction_id = f.id
+      WHERE uf.user_id = ?
+    `).bind(user.id).first<any>();
+
+    if (userFaction && userFaction.bonus_multiplier) {
+      finalReward = Math.floor(result.reward * userFaction.bonus_multiplier);
+    }
+
     // Update user tickets
     const userInfo = await c.env.DB.prepare(`
       SELECT tickets FROM users WHERE id = ?
     `).bind(user.id).first<any>();
 
-    const newTickets = (userInfo?.tickets || 0) + result.reward;
+    const newTickets = (userInfo?.tickets || 0) + finalReward;
 
     await c.env.DB.prepare(`
       UPDATE users SET tickets = ? WHERE id = ?
@@ -222,13 +271,13 @@ questRouter.get('/prediction/check', authMiddleware, async (c) => {
       generateId(),
       user.id,
       quest.id,
-      result.reward,
+      finalReward,
       result.message
     ).run();
 
     return c.json({
       success: true,
-      reward: result.reward,
+      reward: finalReward,
       newTickets,
       message: result.message
     });
@@ -396,12 +445,25 @@ questRouter.post('/complete', authMiddleware, questRateLimit, async (c) => {
         return c.json({ error: 'Unknown quest type' }, 400);
     }
 
+    // Apply faction multiplier to reward
+    let finalReward = reward;
+    const userFaction = await c.env.DB.prepare(`
+      SELECT f.bonus_multiplier
+      FROM user_factions uf
+      JOIN factions f ON uf.faction_id = f.id
+      WHERE uf.user_id = ?
+    `).bind(user.id).first<any>();
+
+    if (userFaction && userFaction.bonus_multiplier) {
+      finalReward = Math.floor(reward * userFaction.bonus_multiplier);
+    }
+
     // Update user tickets
     const userInfo = await c.env.DB.prepare(`
       SELECT tickets FROM users WHERE id = ?
     `).bind(user.id).first<any>();
 
-    const newTickets = (userInfo?.tickets || 0) + reward;
+    const newTickets = (userInfo?.tickets || 0) + finalReward;
 
     await c.env.DB.prepare(`
       UPDATE users SET tickets = ? WHERE id = ?
@@ -415,13 +477,13 @@ questRouter.post('/complete', authMiddleware, questRateLimit, async (c) => {
       generateId(),
       user.id,
       quest.id,
-      reward,
+      finalReward,
       JSON.stringify(result)
     ).run();
 
     return c.json({
       success: true,
-      reward,
+      reward: finalReward,
       newTickets,
       result
     });

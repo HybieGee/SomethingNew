@@ -536,17 +536,43 @@ export default function QuestsPage() {
             {/* Faction Loyalty Bonus */}
             {quest.slug === 'faction_loyalty' && (
               <div>
-                <button
-                  onClick={() => handleFactionLoyalty(quest.slug)}
-                  disabled={!quest.available}
-                  className="w-full py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
-                >
-                  <Sparkles className="inline mr-2" size={18} />
-                  Claim Faction Loyalty Bonus
-                </button>
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  Stay in your current faction for 24 hours to earn bonus tickets
-                </p>
+                {quest.factionLoyaltyProgress?.inProgress ? (
+                  <div>
+                    <button
+                      onClick={() => handleFactionLoyalty(quest.slug)}
+                      disabled={!quest.factionLoyaltyProgress?.canClaim}
+                      className={`w-full py-3 rounded-lg text-white font-bold transition-opacity ${
+                        quest.factionLoyaltyProgress?.canClaim
+                          ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:opacity-90'
+                          : 'bg-gradient-to-r from-blue-500 to-purple-500 opacity-75 cursor-not-allowed'
+                      }`}
+                    >
+                      <Sparkles className="inline mr-2" size={18} />
+                      {quest.factionLoyaltyProgress?.canClaim
+                        ? 'Claim Faction Loyalty Bonus'
+                        : 'Faction Loyalty in Progress'}
+                    </button>
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      {quest.factionLoyaltyProgress?.canClaim
+                        ? 'Loyalty verified! Click to claim your bonus'
+                        : `${quest.factionLoyaltyProgress?.hoursRemaining || 0} hours remaining to complete`}
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <button
+                      onClick={() => handleFactionLoyalty(quest.slug)}
+                      disabled={!quest.available}
+                      className="w-full py-3 rounded-lg bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                    >
+                      <Sparkles className="inline mr-2" size={18} />
+                      Claim Faction Loyalty Bonus
+                    </button>
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      Stay in your current faction for 24 hours to earn bonus tickets
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </motion.div>

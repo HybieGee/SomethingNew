@@ -139,7 +139,7 @@ export default function LandingPage() {
       <nav className="relative z-50 px-4 py-6">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/assets/icons/PairLogo.png" alt="PairCade Logo" className="w-8 h-8 object-contain" />
+            <img src="/assets/icons/PairLogo.png" alt="PairCade Logo" className="w-16 h-16 object-contain" />
             <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               PairCade
             </span>
