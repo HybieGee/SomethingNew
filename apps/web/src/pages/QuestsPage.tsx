@@ -80,7 +80,10 @@ export default function QuestsPage() {
       } else {
         toast.info(result.message);
       }
-      refetch();
+
+      // Force invalidate and refetch quest data to reset the prediction UI
+      await queryClient.invalidateQueries({ queryKey: ['quests'] });
+      await refetch();
     } catch (error: any) {
       toast.error('Failed to check prediction');
     }
