@@ -460,7 +460,7 @@ export default function LandingPage() {
                       <motion.img
                         src="/assets/icons/PairFaction.png"
                         alt="Pair Faction Rewards"
-                        className="w-32 h-32 md:w-40 md:h-40 object-contain"
+                        className="w-32 h-32 md:w-40 md:h-40 object-contain rounded-2xl"
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.5 }}
