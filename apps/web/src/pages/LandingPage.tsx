@@ -444,18 +444,65 @@ export default function LandingPage() {
                 </Link>
               </div>
               <div className="relative">
-                <div className="relative w-full h-64 md:h-96 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center overflow-hidden">
-                  <img
-                    src="/assets/icons/PairFaction.png"
-                    alt="Pair Faction Rewards"
-                    className="w-48 h-48 md:w-64 md:h-64 object-contain z-10"
-                  />
+                <div className="relative w-full h-64 md:h-96 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl overflow-hidden">
+                  {/* Background pattern */}
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="absolute top-4 left-4 w-20 h-20 border-2 border-white/30 rounded-lg rotate-12"></div>
+                    <div className="absolute top-8 right-8 w-16 h-16 border-2 border-yellow-400/30 rounded-full"></div>
+                    <div className="absolute bottom-8 left-8 w-12 h-12 border-2 border-purple-400/30 rounded-lg -rotate-12"></div>
+                    <div className="absolute bottom-4 right-4 w-24 h-24 border-2 border-pink-400/30 rounded-full"></div>
+                  </div>
+
+                  {/* Main content layout */}
+                  <div className="relative h-full flex items-center justify-between p-8">
+                    {/* Left side - Image and title */}
+                    <div className="flex flex-col items-center space-y-4">
+                      <motion.img
+                        src="/assets/icons/PairFaction.png"
+                        alt="Pair Faction Rewards"
+                        className="w-32 h-32 md:w-40 md:h-40 object-contain"
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                      />
+                      <div className="text-center">
+                        <h4 className="text-lg md:text-xl font-bold text-white mb-1">Faction Rewards</h4>
+                        <p className="text-sm text-purple-300">Unlock Team Benefits</p>
+                      </div>
+                    </div>
+
+                    {/* Right side - Stats and benefits */}
+                    <div className="flex-1 max-w-xs ml-8">
+                      <div className="space-y-4">
+                        <div className="bg-white/10 backdrop-blur rounded-lg p-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-300">Multiplier Range</span>
+                            <span className="text-yellow-400 font-bold">1.25x - 3x</span>
+                          </div>
+                        </div>
+                        <div className="bg-white/10 backdrop-blur rounded-lg p-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-300">Prize Boost</span>
+                            <span className="text-green-400 font-bold">Up to 100%</span>
+                          </div>
+                        </div>
+                        <div className="bg-white/10 backdrop-blur rounded-lg p-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-300">Faction Events</span>
+                            <span className="text-purple-400 font-bold">Exclusive</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Animated background glow */}
                   <motion.div
                     animate={{
-                      scale: [1, 1.2, 1],
-                      opacity: [0.3, 0.6, 0.3]
+                      scale: [1, 1.1, 1],
+                      opacity: [0.2, 0.4, 0.2]
                     }}
-                    transition={{ duration: 3, repeat: Infinity }}
+                    transition={{ duration: 4, repeat: Infinity }}
                     className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl"
                   />
                 </div>

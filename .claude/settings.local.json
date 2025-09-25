@@ -27,7 +27,8 @@
       "Bash(npx wrangler d1 execute:*)",
       "Bash(npx wrangler:*)",
       "Bash(dir)",
-      "Bash(copy:*)"
+      "Bash(copy:*)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []
