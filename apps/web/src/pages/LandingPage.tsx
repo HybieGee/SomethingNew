@@ -125,9 +125,9 @@ export default function LandingPage() {
       subtext: `${formatNumber(liveStats?.totalUsers || 0)} total`
     },
     {
-      value: formatCurrency(liveStats?.totalPrizePool || 0),
-      label: "Prize Pool",
-      subtext: `${liveStats?.activeRaffles || 0} active raffles`
+      value: "100%",
+      label: "Creator Rewards",
+      subtext: "All fees to prize pool"
     },
     { value: "24/7", label: "Live Games", subtext: "Always available" },
     { value: "5 Min", label: "Quick Plays", subtext: "Fast rewards" }
@@ -444,8 +444,12 @@ export default function LandingPage() {
                 </Link>
               </div>
               <div className="relative">
-                <div className="relative w-full h-64 md:h-96 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center">
-                  <Rocket className="w-32 h-32 text-purple-400" />
+                <div className="relative w-full h-64 md:h-96 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl flex items-center justify-center overflow-hidden">
+                  <img
+                    src="/assets/icons/PairFaction.png"
+                    alt="Pair Faction Rewards"
+                    className="w-48 h-48 md:w-64 md:h-64 object-contain z-10"
+                  />
                   <motion.div
                     animate={{
                       scale: [1, 1.2, 1],

@@ -124,8 +124,8 @@ export default function AdminPage() {
           </div>
           <div className="bg-arcade-dark/50 border border-white/10 rounded-lg p-4">
             <DollarSign className="text-arcade-pink mb-2" size={20} />
-            <p className="text-2xl font-bold">{stats.stats.currentPrizePool?.toLocaleString()}</p>
-            <p className="text-sm text-gray-400">Prize Pool</p>
+            <p className="text-2xl font-bold">100%</p>
+            <p className="text-sm text-gray-400">Creator Rewards</p>
           </div>
         </div>
       )}

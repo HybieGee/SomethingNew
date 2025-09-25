@@ -81,6 +81,20 @@ export default function CreatorRewardsPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
+            {/* Custom Faction Rewards Graphic */}
+            <motion.div
+              className="mb-8 flex justify-center"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <img
+                src="/assets/icons/PairFaction.png"
+                alt="Pair Faction Rewards"
+                className="w-48 h-48 md:w-64 md:h-64 object-contain rounded-2xl shadow-2xl shadow-purple-500/20 border-2 border-purple-500/30"
+              />
+            </motion.div>
+
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-full mb-6">
               <Crown className="w-4 h-4 text-yellow-400" />
               <span className="text-sm text-yellow-300">Pair Faction Rewards Program</span>

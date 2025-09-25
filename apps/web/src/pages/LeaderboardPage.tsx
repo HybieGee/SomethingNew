@@ -69,7 +69,7 @@ export default function LeaderboardPage() {
             <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-4">
               <Sparkles className="w-6 h-6 text-purple-400 mx-auto mb-2" />
               <p className="text-sm text-gray-400">Prize Pool</p>
-              <p className="font-bold text-green-400">$50K</p>
+              <p className="font-bold text-green-400">100% Creator Rewards</p>
             </div>
             <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-4">
               <Star className="w-6 h-6 text-blue-400 mx-auto mb-2" />
