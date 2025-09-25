@@ -28,7 +28,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <img
                 src="/assets/icons/PairLogo.png"
                 alt="PairCade Logo"
-                className="w-8 h-8 object-contain"
+                className="w-12 h-12 object-contain"
               />
               <h1 className="text-2xl font-bold arcade-gradient bg-clip-text text-transparent">
                 PairCade
