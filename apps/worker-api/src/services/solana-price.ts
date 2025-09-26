@@ -52,29 +52,47 @@ export async function storePricePrediction(
   const predictionId = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
 
-  await env.DB.prepare(`
-    INSERT INTO price_predictions (id, user_id, quest_id, prediction, initial_price, expires_at, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
-  `).bind(
+  console.log('💾 Storing prediction in database:', {
     predictionId,
     userId,
     questId,
     prediction,
     currentPrice,
-    expiresAt.toISOString()
-  ).run();
+    expiresAt: expiresAt.toISOString()
+  });
 
-  // Store in KV for quick access
-  await env.CACHE.put(
-    `prediction:${userId}:${questId}`,
-    JSON.stringify({
+  try {
+    await env.DB.prepare(`
+      INSERT INTO price_predictions (id, user_id, quest_id, prediction, initial_price, expires_at, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+    `).bind(
       predictionId,
+      userId,
+      questId,
       prediction,
-      initialPrice: currentPrice,
-      expiresAt: expiresAt.toISOString()
-    }),
-    { expirationTtl: 1800 } // 30 minutes
-  );
+      currentPrice,
+      expiresAt.toISOString()
+    ).run();
+
+    console.log('✅ Database insert successful');
+
+    // Store in KV for quick access
+    await env.CACHE.put(
+      `prediction:${userId}:${questId}`,
+      JSON.stringify({
+        predictionId,
+        prediction,
+        initialPrice: currentPrice,
+        expiresAt: expiresAt.toISOString()
+      }),
+      { expirationTtl: 1800 } // 30 minutes
+    );
+
+    console.log('✅ KV cache store successful');
+  } catch (error) {
+    console.error('❌ Error in storePricePrediction:', error);
+    throw error;
+  }
 }
 
 export async function checkPredictionResult(

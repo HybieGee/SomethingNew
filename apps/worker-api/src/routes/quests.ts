@@ -343,20 +343,31 @@ questRouter.post('/complete', authMiddleware, questRateLimit, async (c) => {
       case 'up_down_call':
         // Handle Solana prediction
         if (quest.slug === 'solana_prediction' && data.choice) {
-          const currentPrice = await getSolanaPrice(c.env.CACHE);
-          await storePricePrediction(
-            c.env,
-            user.id,
-            quest.id,
-            data.choice as 'up' | 'down',
-            currentPrice
-          );
+          console.log('🔮 Processing SOL prediction:', { userId: user.id, questId: quest.id, choice: data.choice });
 
-          return c.json({
-            success: true,
-            message: `Prediction recorded! SOL is currently at $${currentPrice.toFixed(2)}. Check back in 30 minutes for results.`,
-            currentPrice
-          });
+          try {
+            const currentPrice = await getSolanaPrice(c.env.CACHE);
+            console.log('📈 Current SOL price:', currentPrice);
+
+            await storePricePrediction(
+              c.env,
+              user.id,
+              quest.id,
+              data.choice as 'up' | 'down',
+              currentPrice
+            );
+
+            console.log('✅ SOL prediction stored successfully');
+
+            return c.json({
+              success: true,
+              message: `Prediction recorded! SOL is currently at $${currentPrice.toFixed(2)}. Check back in 30 minutes for results.`,
+              currentPrice
+            });
+          } catch (predictionError) {
+            console.error('❌ SOL prediction error:', predictionError);
+            throw predictionError; // Re-throw to be caught by main error handler
+          }
         }
         break;
 
