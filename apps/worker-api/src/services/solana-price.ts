@@ -17,64 +17,105 @@ export async function getSolanaPrice(cache?: any): Promise<number> {
     }
   }
 
-  try {
-    // Try alternative free API first (no rate limits)
-    try {
-      const backupResponse = await fetch('https://api.coincap.io/v2/assets/solana');
-      const backupData = await backupResponse.json();
+  // Try multiple APIs in sequence with proper error handling
+  const apis = [
+    {
+      name: 'CoinCap',
+      url: 'https://api.coincap.io/v2/assets/solana',
+      parser: (data: any) => {
+        if (data && data.data && typeof data.data.priceUsd === 'string') {
+          return parseFloat(data.data.priceUsd);
+        }
+        throw new Error('Invalid CoinCap response structure');
+      }
+    },
+    {
+      name: 'CoinGecko',
+      url: 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd',
+      parser: (data: any) => {
+        if (data && data.status && data.status.error_code === 429) {
+          throw new Error('Rate limited');
+        }
+        if (data && data.solana && typeof data.solana.usd === 'number') {
+          return data.solana.usd;
+        }
+        throw new Error('Invalid CoinGecko response structure');
+      }
+    },
+    {
+      name: 'Binance',
+      url: 'https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT',
+      parser: (data: any) => {
+        if (data && typeof data.price === 'string') {
+          return parseFloat(data.price);
+        }
+        throw new Error('Invalid Binance response structure');
+      }
+    }
+  ];
 
-      if (backupData && backupData.data && typeof backupData.data.priceUsd === 'string') {
-        const price = parseFloat(backupData.data.priceUsd);
-        console.log('✅ Using CoinCap API price:', price);
+  for (const api of apis) {
+    try {
+      console.log(`🔄 Trying ${api.name} API...`);
+      const response = await fetch(api.url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const text = await response.text();
+
+      // Check if response is HTML (blocked/error page)
+      if (text.trim().startsWith('<')) {
+        throw new Error('API returned HTML instead of JSON (likely blocked)');
+      }
+
+      const data = JSON.parse(text);
+      const price = api.parser(data);
+
+      if (price && price > 0) {
+        console.log(`✅ Using ${api.name} API price: $${price}`);
+
+        // Cache the successful price
+        if (cache) {
+          try {
+            await cache.put('solana:price', JSON.stringify({
+              price,
+              timestamp: Date.now()
+            }), { expirationTtl: 120 }); // 2 minute expiration
+          } catch (error) {
+            console.error('Cache write error for Solana price:', error);
+          }
+        }
+
         return price;
       }
-    } catch (backupError) {
-      console.log('⚠️ Backup API failed, trying CoinGecko:', backupError);
+    } catch (error) {
+      console.log(`⚠️ ${api.name} API failed:`, error.message);
+      // Continue to next API
     }
-
-    // Fallback to CoinGecko
-    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
-    const data = await response.json();
-
-    console.log('🔍 CoinGecko API response:', JSON.stringify(data));
-
-    // Handle rate limit and errors
-    if (data && data.status && data.status.error_code === 429) {
-      console.log('⚠️ CoinGecko rate limited, using fallback price');
-      throw new Error('Rate limited');
-    }
-
-    // Handle various possible response structures
-    let price: number;
-    if (data && data.solana && typeof data.solana.usd === 'number') {
-      price = data.solana.usd;
-    } else if (data && typeof data.usd === 'number') {
-      price = data.usd;
-    } else if (data && Array.isArray(data) && data[0] && typeof data[0].current_price === 'number') {
-      price = data[0].current_price;
-    } else {
-      console.error('❌ Unexpected CoinGecko response structure:', data);
-      throw new Error('Invalid API response structure');
-    }
-
-    // Cache the price
-    if (cache) {
-      try {
-        await cache.put('solana:price', JSON.stringify({
-          price,
-          timestamp: Date.now()
-        }), { expirationTtl: 120 }); // 2 minute expiration
-      } catch (error) {
-        console.error('Cache write error for Solana price:', error);
-      }
-    }
-
-    return price;
-  } catch (error) {
-    console.error('Failed to fetch Solana price:', error);
-    // Fallback to a default price if API fails
-    return 50.0;
   }
+
+  // If all APIs fail, try to get a longer cached price (up to 10 minutes old)
+  if (cache) {
+    try {
+      const staleCache = await cache.get('solana:price', 'json') as PriceData | null;
+      if (staleCache && (Date.now() - staleCache.timestamp) < 600000) { // 10 minute stale cache
+        console.log('⚠️ Using stale cached price due to API failures:', staleCache.price);
+        return staleCache.price;
+      }
+    } catch (error) {
+      console.error('Stale cache read error:', error);
+    }
+  }
+
+  // Final fallback - use reasonable SOL price
+  console.error('❌ All price APIs failed, using fallback price');
+  return 160.0; // More realistic fallback price for SOL
 }
 
 export async function storePricePrediction(

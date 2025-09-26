@@ -346,8 +346,22 @@ questRouter.post('/complete', authMiddleware, questRateLimit, async (c) => {
           console.log('🔮 Processing SOL prediction:', { userId: user.id, questId: quest.id, choice: data.choice });
 
           try {
+            // Check if user already has an active prediction
+            const existingPrediction = await c.env.CACHE.get(`prediction:${user.id}:${quest.id}`, 'json');
+            if (existingPrediction) {
+              return c.json({
+                error: 'You already have an active prediction. Wait for it to complete.',
+                success: false
+              }, 400);
+            }
+
             const currentPrice = await getSolanaPrice(c.env.CACHE);
             console.log('📈 Current SOL price:', currentPrice);
+
+            // Validate price is reasonable (between $10 and $1000)
+            if (!currentPrice || currentPrice < 10 || currentPrice > 1000) {
+              throw new Error(`Invalid price received: ${currentPrice}`);
+            }
 
             await storePricePrediction(
               c.env,
@@ -366,7 +380,12 @@ questRouter.post('/complete', authMiddleware, questRateLimit, async (c) => {
             });
           } catch (predictionError) {
             console.error('❌ SOL prediction error:', predictionError);
-            throw predictionError; // Re-throw to be caught by main error handler
+            // Return a more specific error message
+            return c.json({
+              error: 'Failed to record prediction. Price data may be temporarily unavailable.',
+              details: predictionError.message,
+              success: false
+            }, 500);
           }
         }
         break;
