@@ -128,6 +128,15 @@ export async function storePricePrediction(
     );
 
     console.log('✅ KV cache store successful');
+
+    // Invalidate the quest cache for this user to ensure immediate UI updates
+    try {
+      await env.CACHE.delete(`quests:${userId}`);
+      console.log('✅ Quest cache invalidated for immediate UI update');
+    } catch (cacheError) {
+      console.error('⚠️ Failed to invalidate quest cache:', cacheError);
+      // Don't throw - this is not critical
+    }
   } catch (error) {
     console.error('❌ Error in storePricePrediction:', error);
     throw error;

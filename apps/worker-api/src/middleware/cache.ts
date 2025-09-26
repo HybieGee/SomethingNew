@@ -94,8 +94,12 @@ export const profileCache = cache({
 });
 
 export const questsCache = cache({
-  ttl: 600, // 10 minutes
-  keyGenerator: () => 'quests:all',
+  ttl: 30, // 30 seconds - short cache for responsive quest states
+  keyGenerator: (c) => {
+    const user = c.get('user');
+    return `quests:${user?.id || 'anonymous'}`;
+  },
+  skipCache: (c) => !c.get('user') // Don't cache if no user
 });
 
 export const solanaCache = cache({
