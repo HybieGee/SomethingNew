@@ -85,7 +85,7 @@ export async function checkPredictionResult(
   // First check cache
   let predictionData = await env.CACHE.get(`prediction:${userId}:${questId}`, 'json');
 
-  // If not in cache, check database for unresolved predictions
+  // If not in cache, check database for unresolved predictions (including expired ones)
   if (!predictionData) {
     const dbPrediction = await env.DB.prepare(`
       SELECT * FROM price_predictions
@@ -94,6 +94,8 @@ export async function checkPredictionResult(
     `).bind(userId, questId).first();
 
     if (!dbPrediction) {
+      // Clean up any stale cache entries
+      await env.CACHE.delete(`prediction:${userId}:${questId}`);
       return { success: false, message: 'No active prediction found' };
     }
 

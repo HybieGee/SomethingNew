@@ -501,6 +501,41 @@ questRouter.post('/complete', authMiddleware, questRateLimit, async (c) => {
   }
 });
 
+// Utility endpoint to clear stuck predictions (temporary fix)
+questRouter.post('/prediction/clear', authMiddleware, async (c) => {
+  try {
+    const user = c.get('user');
+    const body = await c.req.json();
+    const { questSlug } = body;
+
+    const quest = await c.env.DB.prepare(`
+      SELECT id FROM quests WHERE slug = ?
+    `).bind(questSlug).first<any>();
+
+    if (!quest) {
+      return c.json({ error: 'Quest not found' }, 404);
+    }
+
+    // Clear any unresolved predictions for this user/quest
+    await c.env.DB.prepare(`
+      UPDATE price_predictions
+      SET resolved = TRUE
+      WHERE user_id = ? AND quest_id = ? AND resolved = FALSE
+    `).bind(user.id, quest.id).run();
+
+    // Clear cache
+    await c.env.CACHE.delete(`prediction:${user.id}:${quest.id}`);
+
+    return c.json({
+      success: true,
+      message: 'Cleared stuck prediction'
+    });
+  } catch (error: any) {
+    console.error('Clear prediction error:', error);
+    return c.json({ error: 'Failed to clear prediction' }, 500);
+  }
+});
+
 // Utility function (remove from here if exists elsewhere)
 async function fetchCoinPrice(): Promise<number> {
   return Math.random() * 100 + 50;
