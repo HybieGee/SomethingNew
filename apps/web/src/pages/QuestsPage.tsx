@@ -411,10 +411,16 @@ export default function QuestsPage() {
                   {quest.min_reward} - {quest.max_reward} 🎫
                 </p>
                 {!quest.available && (
-                  <p className="text-sm text-red-400 flex items-center gap-1">
+                  <div className="text-sm text-red-400 flex items-center gap-1">
                     <Timer size={14} />
-                    {formatCooldown(quest.cooldownRemaining)}
-                  </p>
+                    {quest.slug === 'solana_prediction' || quest.slug === 'whale_hunt' ? (
+                      <span>Active prediction in progress</span>
+                    ) : quest.cooldownRemaining > 0 ? (
+                      <span>Cooldown: {formatCooldown(quest.cooldownRemaining)}</span>
+                    ) : (
+                      <span>Quest unavailable</span>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -430,23 +436,30 @@ export default function QuestsPage() {
                     Check Prediction Result
                   </button>
                 ) : (
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => handleSolanaPrediction(quest.slug, 'up')}
-                      disabled={!quest.available}
-                      className="flex-1 py-3 rounded-lg bg-arcade-green/20 border border-arcade-green/50 hover:bg-arcade-green/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
-                      <TrendingUp className="inline mr-2" size={18} />
-                      SOL Goes UP
-                    </button>
-                    <button
-                      onClick={() => handleSolanaPrediction(quest.slug, 'down')}
-                      disabled={!quest.available}
-                      className="flex-1 py-3 rounded-lg bg-arcade-red/20 border border-arcade-red/50 hover:bg-arcade-red/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
-                      <TrendingDown className="inline mr-2" size={18} />
-                      SOL Goes DOWN
-                    </button>
+                  <div>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => handleSolanaPrediction(quest.slug, 'up')}
+                        disabled={!quest.available}
+                        className="flex-1 py-3 rounded-lg bg-arcade-green/20 border border-arcade-green/50 hover:bg-arcade-green/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      >
+                        <TrendingUp className="inline mr-2" size={18} />
+                        SOL Goes UP
+                      </button>
+                      <button
+                        onClick={() => handleSolanaPrediction(quest.slug, 'down')}
+                        disabled={!quest.available}
+                        className="flex-1 py-3 rounded-lg bg-arcade-red/20 border border-arcade-red/50 hover:bg-arcade-red/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      >
+                        <TrendingDown className="inline mr-2" size={18} />
+                        SOL Goes DOWN
+                      </button>
+                    </div>
+                    {!quest.available && (
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        Wait for current prediction to complete
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
@@ -456,14 +469,21 @@ export default function QuestsPage() {
             {quest.slug === 'tap_challenge' && (
               <div>
                 {!tapping || activeQuestSlug !== quest.slug ? (
-                  <button
-                    onClick={() => handleStartTapChallenge(quest.slug)}
-                    disabled={!quest.available}
-                    className="w-full py-3 rounded-lg arcade-gradient text-white font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
-                  >
-                    <MousePointer className="inline mr-2" size={18} />
-                    Start Tapping Challenge!
-                  </button>
+                  <div>
+                    <button
+                      onClick={() => handleStartTapChallenge(quest.slug)}
+                      disabled={!quest.available}
+                      className="w-full py-3 rounded-lg arcade-gradient text-white font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                    >
+                      <MousePointer className="inline mr-2" size={18} />
+                      Start Tapping Challenge!
+                    </button>
+                    {!quest.available && quest.cooldownRemaining > 0 && (
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        Next challenge in: {formatCooldown(quest.cooldownRemaining)}
+                      </p>
+                    )}
+                  </div>
                 ) : (
                   <div className="text-center">
                     <motion.button
@@ -483,26 +503,40 @@ export default function QuestsPage() {
 
             {/* Memecoin Trivia */}
             {quest.slug === 'memecoin_trivia' && (
-              <button
-                onClick={() => startTrivia(quest.slug)}
-                disabled={!quest.available}
-                className="w-full py-3 rounded-lg arcade-gradient text-white font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
-              >
-                <Brain className="inline mr-2" size={18} />
-                Start Memecoin Trivia
-              </button>
+              <div>
+                <button
+                  onClick={() => startTrivia(quest.slug)}
+                  disabled={!quest.available}
+                  className="w-full py-3 rounded-lg arcade-gradient text-white font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                >
+                  <Brain className="inline mr-2" size={18} />
+                  Start Memecoin Trivia
+                </button>
+                {!quest.available && quest.cooldownRemaining > 0 && (
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    Next trivia in: {formatCooldown(quest.cooldownRemaining)}
+                  </p>
+                )}
+              </div>
             )}
 
             {/* Crypto IQ Challenge */}
             {quest.slug === 'crypto_iq_challenge' && (
-              <button
-                onClick={() => startTrivia(quest.slug)}
-                disabled={!quest.available}
-                className="w-full py-3 rounded-lg arcade-gradient text-white font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
-              >
-                <Brain className="inline mr-2" size={18} />
-                Start Crypto IQ Challenge
-              </button>
+              <div>
+                <button
+                  onClick={() => startTrivia(quest.slug)}
+                  disabled={!quest.available}
+                  className="w-full py-3 rounded-lg arcade-gradient text-white font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                >
+                  <Brain className="inline mr-2" size={18} />
+                  Start Crypto IQ Challenge
+                </button>
+                {!quest.available && quest.cooldownRemaining > 0 && (
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    Next challenge in: {formatCooldown(quest.cooldownRemaining)}
+                  </p>
+                )}
+              </div>
             )}
 
             {/* Whale Hunting */}
@@ -541,6 +575,11 @@ export default function QuestsPage() {
                         🔵 Virtual Curve
                       </button>
                     </div>
+                    {!quest.available && (
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        Wait for current volume prediction to complete
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
