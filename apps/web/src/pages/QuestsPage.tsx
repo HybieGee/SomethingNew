@@ -400,7 +400,7 @@ export default function QuestsPage() {
                 {quest.activePrediction && (
                   <div className="mt-2 p-2 bg-arcade-purple/20 rounded">
                     <p className="text-sm text-arcade-purple">
-                      Active prediction: {quest.activePrediction.prediction.toUpperCase()}
+                      Active prediction: {quest.activePrediction.prediction ? quest.activePrediction.prediction.toUpperCase() : 'Processing...'}
                       {quest.activePrediction.initialPrice && ` from $${quest.activePrediction.initialPrice.toFixed(2)}`}
                     </p>
                   </div>

@@ -62,13 +62,16 @@ export default function HomePage() {
       const result = await api.profile.claimDaily();
       updateTickets(result.newTickets);
       toast.success(`Claimed ${result.reward} tickets! Streak: ${result.streakDays} days`);
-      refetch();
+      // Force immediate refetch to update the button state
+      await refetch();
     } catch (error: any) {
       if (error.message && error.message.includes('Already claimed')) {
         // Extract hours from error message if available, otherwise default to 20
         const hoursMatch = error.message.match(/(\d+)/);
         const hours = hoursMatch ? hoursMatch[1] : '20';
         toast.error(`Already claimed! Next claim in ${hours} hours`);
+        // Refetch to ensure UI is in sync with server state
+        await refetch();
       } else {
         toast.error(error.message || 'Failed to claim daily reward');
       }
