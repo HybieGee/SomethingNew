@@ -60,10 +60,16 @@ export default function QuestsPage() {
   const handleSolanaPrediction = async (questSlug: string, choice: 'up' | 'down') => {
     try {
       const result = await api.quests.complete({ questSlug, choice });
-      toast.info(result.message || 'Prediction recorded! Check back in 1 hour for results.');
-      refetch();
+
+      if (result.success) {
+        toast.success(result.message || `SOL prediction recorded! You predicted ${choice.toUpperCase()}. Check back in 30 minutes for results.`);
+        refetch(); // Refresh to show updated UI state
+      } else {
+        toast.error(result.message || 'Failed to record prediction');
+      }
     } catch (error: any) {
-      toast.error(error.message);
+      console.error('SOL prediction error:', error);
+      toast.error(error.message || 'Failed to complete quest');
     }
   };
 
