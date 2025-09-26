@@ -61,17 +61,20 @@ export default function QuestsPage() {
     try {
       // Optimistically update the UI immediately
       queryClient.setQueryData(['quests'], (oldData: any) => {
-        if (!oldData) return oldData;
-        return oldData.map((quest: any) => {
-          if (quest.slug === questSlug) {
-            return {
-              ...quest,
-              available: false,
-              activePrediction: true
-            };
-          }
-          return quest;
-        });
+        if (!oldData || !oldData.quests) return oldData;
+        return {
+          ...oldData,
+          quests: oldData.quests.map((quest: any) => {
+            if (quest.slug === questSlug) {
+              return {
+                ...quest,
+                available: false,
+                activePrediction: true
+              };
+            }
+            return quest;
+          })
+        };
       });
 
       const result = await api.quests.complete({ questSlug, choice });
