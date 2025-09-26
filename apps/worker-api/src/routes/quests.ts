@@ -32,16 +32,9 @@ questRouter.get('/', authMiddleware, questsCache, async (c) => {
   });
 
   const questsWithCooldown = await Promise.all(quests.results.map(async (quest: any) => {
-    const lastCompleted = completionMap.get(quest.id);
     let cooldownRemaining = 0;
 
-    if (lastCompleted) {
-      const cooldownMs = quest.cooldown_minutes * 60 * 1000;
-      const timeSince = Date.now() - lastCompleted.getTime();
-      cooldownRemaining = Math.max(0, cooldownMs - timeSince);
-    }
-
-    // Check for active predictions
+    // Check for active predictions first
     let activePrediction = null;
     if (quest.slug === 'solana_prediction') {
       // First check cache
@@ -74,6 +67,14 @@ questRouter.get('/', authMiddleware, questsCache, async (c) => {
       if (volumePrediction) {
         activePrediction = volumePrediction;
       }
+    } else {
+      // For non-prediction quests, calculate normal cooldown
+      const lastCompleted = completionMap.get(quest.id);
+      if (lastCompleted) {
+        const cooldownMs = quest.cooldown_minutes * 60 * 1000;
+        const timeSince = Date.now() - lastCompleted.getTime();
+        cooldownRemaining = Math.max(0, cooldownMs - timeSince);
+      }
     }
 
     // Check for faction loyalty tracking
@@ -98,10 +99,16 @@ questRouter.get('/', authMiddleware, questsCache, async (c) => {
       }
     }
 
+    // For prediction quests, available means no active prediction
+    // For other quests, available means cooldown is finished
+    const isAvailable = quest.slug === 'solana_prediction' || quest.slug === 'whale_hunt'
+      ? !activePrediction
+      : cooldownRemaining === 0;
+
     return {
       ...quest,
       cooldownRemaining,
-      available: cooldownRemaining === 0,
+      available: isAvailable,
       activePrediction,
       factionLoyaltyProgress
     };
