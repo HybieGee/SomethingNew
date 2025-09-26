@@ -59,17 +59,37 @@ export default function QuestsPage() {
 
   const handleSolanaPrediction = async (questSlug: string, choice: 'up' | 'down') => {
     try {
+      // Optimistically update the UI immediately
+      queryClient.setQueryData(['quests'], (oldData: any) => {
+        if (!oldData) return oldData;
+        return oldData.map((quest: any) => {
+          if (quest.slug === questSlug) {
+            return {
+              ...quest,
+              available: false,
+              activePrediction: true
+            };
+          }
+          return quest;
+        });
+      });
+
       const result = await api.quests.complete({ questSlug, choice });
 
       if (result.success) {
         toast.success(result.message || `SOL prediction recorded! You predicted ${choice.toUpperCase()}. Check back in 30 minutes for results.`);
-        refetch(); // Refresh to show updated UI state
+        // Refetch to ensure server state is synced
+        refetch();
       } else {
         toast.error(result.message || 'Failed to record prediction');
+        // Revert optimistic update on failure
+        refetch();
       }
     } catch (error: any) {
       console.error('SOL prediction error:', error);
       toast.error(error.message || 'Failed to complete quest');
+      // Revert optimistic update on error
+      refetch();
     }
   };
 
