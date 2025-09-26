@@ -4,6 +4,42 @@ import type { Env } from '../types';
 
 export const seedRouter = new Hono<{ Bindings: Env }>();
 
+// Create conversions table
+seedRouter.post('/init-conversions', async (c) => {
+  try {
+    console.log('Creating conversions table...');
+
+    await c.env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS conversions (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        ticket_amount INTEGER NOT NULL,
+        sol_amount REAL NOT NULL,
+        recipient_address TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending',
+        transaction_hash TEXT,
+        error_message TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        completed_at DATETIME,
+        FOREIGN KEY (user_id) REFERENCES users (id)
+      )
+    `).run();
+
+    console.log('✅ Conversions table created');
+
+    return c.json({
+      success: true,
+      message: 'Conversions table initialized successfully'
+    });
+  } catch (error) {
+    console.error('Error creating conversions table:', error);
+    return c.json({
+      error: 'Failed to create conversions table',
+      details: error.message
+    }, 500);
+  }
+});
+
 seedRouter.post('/quests', async (c) => {
   try {
     // Keep working quests + add new ones
