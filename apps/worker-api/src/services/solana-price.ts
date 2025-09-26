@@ -18,10 +18,31 @@ export async function getSolanaPrice(cache?: any): Promise<number> {
   }
 
   try {
+    // Try alternative free API first (no rate limits)
+    try {
+      const backupResponse = await fetch('https://api.coincap.io/v2/assets/solana');
+      const backupData = await backupResponse.json();
+
+      if (backupData && backupData.data && typeof backupData.data.priceUsd === 'string') {
+        const price = parseFloat(backupData.data.priceUsd);
+        console.log('✅ Using CoinCap API price:', price);
+        return price;
+      }
+    } catch (backupError) {
+      console.log('⚠️ Backup API failed, trying CoinGecko:', backupError);
+    }
+
+    // Fallback to CoinGecko
     const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
     const data = await response.json();
 
     console.log('🔍 CoinGecko API response:', JSON.stringify(data));
+
+    // Handle rate limit and errors
+    if (data && data.status && data.status.error_code === 429) {
+      console.log('⚠️ CoinGecko rate limited, using fallback price');
+      throw new Error('Rate limited');
+    }
 
     // Handle various possible response structures
     let price: number;
@@ -76,22 +97,21 @@ export async function storePricePrediction(
   });
 
   try {
-    // Convert to SQLite-compatible datetime format
-    const expiresAtSqlite = expiresAt.toISOString().replace('T', ' ').slice(0, 19);
+    console.log('📅 Inserting with CURRENT_TIMESTAMP and relative expiry');
 
-    console.log('📅 SQLite datetime format:', expiresAtSqlite);
-
-    await env.DB.prepare(`
-      INSERT INTO price_predictions (id, user_id, quest_id, prediction, initial_price, expires_at)
-      VALUES (?, ?, ?, ?, ?, ?)
+    // First, insert the base record using CURRENT_TIMESTAMP
+    const insertResult = await env.DB.prepare(`
+      INSERT INTO price_predictions (id, user_id, quest_id, prediction, initial_price, expires_at, created_at)
+      VALUES (?, ?, ?, ?, ?, datetime('now', '+30 minutes'), datetime('now'))
     `).bind(
       predictionId,
       userId,
       questId,
       prediction,
-      currentPrice,
-      expiresAtSqlite
+      currentPrice
     ).run();
+
+    console.log('📊 Insert result:', insertResult);
 
     console.log('✅ Database insert successful');
 
