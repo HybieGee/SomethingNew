@@ -32,6 +32,20 @@ bugRouter.post('/report', async (c) => {
       return c.json({ error: 'Title, description, and category are required' }, 400);
     }
 
+    // Check for potential duplicates (same user, same title, within 5 minutes)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const duplicateCheck = await c.env.DB.prepare(`
+      SELECT id FROM bug_reports
+      WHERE title = ? AND username = ? AND created_at > ?
+      LIMIT 1
+    `).bind(title, username || 'Anonymous', fiveMinutesAgo).first();
+
+    if (duplicateCheck) {
+      return c.json({
+        error: 'Duplicate report detected. Please wait before submitting the same issue again.'
+      }, 400);
+    }
+
     const reportId = generateId();
 
     await c.env.DB.prepare(`

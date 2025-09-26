@@ -8,6 +8,7 @@ export default function BugReportPage() {
   const user = useAuthStore((state) => state.user);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [lastSubmissionTime, setLastSubmissionTime] = useState(0);
   const [formData, setFormData] = useState({
     title: '',
     category: 'bug',
@@ -17,29 +18,47 @@ export default function BugReportPage() {
     actual: '',
     browser: '',
     device: 'desktop',
-    priority: 'medium',
     email: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Prevent duplicate submissions within 5 seconds
+    const now = Date.now();
+    if (now - lastSubmissionTime < 5000) {
+      toast.error('Please wait before submitting another report');
+      return;
+    }
+
     if (!formData.title || !formData.description) {
       toast.error('Please provide a title and description');
       return;
     }
 
+    // Prevent concurrent submissions
+    if (isSubmitting) {
+      return;
+    }
+
     setIsSubmitting(true);
+    setLastSubmissionTime(now);
 
     try {
+      // Add timeout to prevent long waits
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const response = await fetch('https://raffle-arcade-api.claudechaindev.workers.dev/bugs/report', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
+        signal: controller.signal,
         body: JSON.stringify({
           ...formData,
+          priority: 'medium', // Set default priority on backend
           username: user?.username || 'Anonymous',
           userId: user?.id,
           userAgent: navigator.userAgent,
@@ -47,6 +66,8 @@ export default function BugReportPage() {
           timestamp: new Date().toISOString()
         })
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error('Failed to submit report');
 
@@ -65,13 +86,19 @@ export default function BugReportPage() {
           actual: '',
           browser: '',
           device: 'desktop',
-          priority: 'medium',
           email: ''
         });
       }, 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Bug report submission error:', error);
-      toast.error('Failed to submit bug report. Please try again.');
+
+      if (error.name === 'AbortError') {
+        toast.error('Request timed out. Please check your connection and try again.');
+      } else if (error.message?.includes('Failed to fetch') || !navigator.onLine) {
+        toast.error('Network error. Please check your connection and try again.');
+      } else {
+        toast.error('Failed to submit bug report. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -130,8 +157,8 @@ export default function BugReportPage() {
               />
             </div>
 
-            {/* Category & Priority */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Category */}
+            <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Category</label>
                 <select
@@ -150,19 +177,6 @@ export default function BugReportPage() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2">Priority</label>
-                <select
-                  value={formData.priority}
-                  onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                  className="w-full px-4 py-2 bg-arcade-darker border border-white/10 rounded-lg focus:border-arcade-purple focus:outline-none"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
-                </select>
-              </div>
             </div>
 
             {/* Description */}
@@ -232,7 +246,7 @@ export default function BugReportPage() {
                   value={formData.browser}
                   onChange={(e) => setFormData({ ...formData, browser: e.target.value })}
                   className="w-full px-4 py-2 bg-arcade-darker border border-white/10 rounded-lg focus:border-arcade-purple focus:outline-none"
-                  placeholder="e.g., Chrome 120"
+                  placeholder="e.g. Google Chrome"
                 />
               </div>
 

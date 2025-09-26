@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { useAuthStore } from '@/stores/authStore';
 import {
   Bug,
   Filter,
@@ -18,6 +19,7 @@ import {
 
 export default function BugReportsAdminPage() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
   const [filters, setFilters] = useState({
     status: 'all',
     category: 'all',
@@ -34,7 +36,7 @@ export default function BugReportsAdminPage() {
   const limit = 20;
 
   // Fetch bug reports
-  const { data: reportsData, isLoading } = useQuery({
+  const { data: reportsData, isLoading, error } = useQuery({
     queryKey: ['bugReports', filters, currentPage],
     queryFn: async () => {
       const params = new URLSearchParams({
@@ -48,10 +50,15 @@ export default function BugReportsAdminPage() {
         { credentials: 'include' }
       );
 
-      if (!response.ok) throw new Error('Failed to fetch reports');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Admin reports API error:', { status: response.status, statusText: response.statusText, error: errorData });
+        throw new Error(`Failed to fetch reports (${response.status}): ${errorData.error || response.statusText}`);
+      }
       return response.json();
     },
     refetchInterval: 30000,
+    retry: false, // Don't retry on 403 errors
   });
 
   // Fetch bug report statistics
@@ -197,6 +204,31 @@ export default function BugReportsAdminPage() {
           </div>
         )}
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertCircle size={20} className="text-red-400" />
+            <h3 className="text-red-400 font-semibold">Admin Access Error</h3>
+          </div>
+          <p className="text-red-300 mb-2">
+            {error.message || 'Failed to load admin dashboard'}
+          </p>
+          <p className="text-red-300/70 text-sm">
+            Make sure you're logged in with an admin account (username: "admin")
+          </p>
+          <details className="mt-3">
+            <summary className="text-red-300/70 text-sm cursor-pointer hover:text-red-300">
+              Debug Info (click to expand)
+            </summary>
+            <div className="mt-2 p-2 bg-black/20 rounded text-xs">
+              <p><strong>Current User:</strong> {user ? `${user.username} (ID: ${user.id})` : 'Not logged in'}</p>
+              <p><strong>Error:</strong> {error.message}</p>
+            </div>
+          </details>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="bg-arcade-dark/50 border border-white/10 rounded-lg p-4">
