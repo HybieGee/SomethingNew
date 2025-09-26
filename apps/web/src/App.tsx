@@ -15,6 +15,8 @@ import AdminPage from '@/pages/AdminPage';
 import FactionsPage from '@/pages/FactionsPage';
 import RoadmapPage from '@/pages/RoadmapPage';
 import ConversionPage from '@/pages/ConversionPage';
+import BugReportPage from '@/pages/BugReportPage';
+import BugReportsAdminPage from '@/pages/BugReportsAdminPage';
 
 function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -125,6 +127,26 @@ function App() {
           isAuthenticated ? (
             <Layout>
               <ConversionPage />
+            </Layout>
+          ) : (
+            <Navigate to="/auth" />
+          )
+        }
+      />
+      <Route
+        path="/bug-report"
+        element={
+          <Layout>
+            <BugReportPage />
+          </Layout>
+        }
+      />
+      <Route
+        path="/admin/bug-reports"
+        element={
+          isAuthenticated ? (
+            <Layout>
+              <BugReportsAdminPage />
             </Layout>
           ) : (
             <Navigate to="/auth" />

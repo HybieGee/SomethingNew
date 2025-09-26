@@ -9,6 +9,7 @@ import { adminRouter } from './routes/admin';
 import { publicRouter } from './routes/public';
 import { seedRouter } from './routes/seed';
 import { factionRouter } from './routes/factions';
+import { bugRouter } from './routes/bugs';
 import { generalRateLimit } from './middleware/rateLimit';
 import { RaffleDO } from './durable-objects/RaffleDO';
 import type { Env } from './types';
@@ -64,6 +65,7 @@ app.route('/admin', adminRouter);
 app.route('/public', publicRouter);
 app.route('/seed', seedRouter);
 app.route('/factions', factionRouter);
+app.route('/bugs', bugRouter);
 
 app.onError((err, c) => {
   console.error(`Error: ${err.message}`, err.stack);

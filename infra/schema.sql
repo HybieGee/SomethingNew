@@ -186,3 +186,32 @@ CREATE TABLE IF NOT EXISTS admin_claims (
   boost_amount INTEGER,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Bug reports table
+CREATE TABLE IF NOT EXISTS bug_reports (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  category TEXT NOT NULL,
+  priority TEXT NOT NULL,
+  description TEXT NOT NULL,
+  steps TEXT,
+  expected_behavior TEXT,
+  actual_behavior TEXT,
+  username TEXT NOT NULL,
+  user_id TEXT,
+  email TEXT,
+  browser TEXT,
+  device TEXT,
+  user_agent TEXT,
+  url TEXT,
+  status TEXT DEFAULT 'open',
+  admin_notes TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  resolved_at DATETIME,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE INDEX idx_bug_reports_status ON bug_reports(status, created_at);
+CREATE INDEX idx_bug_reports_category ON bug_reports(category);
+CREATE INDEX idx_bug_reports_priority ON bug_reports(priority, created_at);
