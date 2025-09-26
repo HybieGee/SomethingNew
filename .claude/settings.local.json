@@ -28,7 +28,11 @@
       "Bash(npx wrangler:*)",
       "Bash(dir)",
       "Bash(copy:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(git pull:*)",
+      "Bash(del bug_reports_table.sql)",
+      "Bash(del update_quest_types.sql)",
+      "Bash(del simple_quest_fix.sql)"
     ],
     "deny": [],
     "ask": []

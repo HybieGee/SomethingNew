@@ -111,7 +111,9 @@ export default function QuestsPage() {
   const submitTapScore = async (questSlug: string, score: number) => {
     try {
       const result = await api.quests.complete({ questSlug, score });
-      updateTickets((result as any).newTickets);
+      if (result.newTickets) {
+        updateTickets(result.newTickets);
+      }
       toast.success(`Earned ${result.reward} tickets! Score: ${score}`);
       setTapCount(0);
       setActiveQuestSlug(null);
@@ -197,7 +199,9 @@ export default function QuestsPage() {
     try {
       const result = await api.quests.complete({ questSlug, choice });
       toast.success(`Prediction recorded! You chose ${choice.toUpperCase()}. Check back in 2 hours for results.`);
-      updateTickets(result.newTickets);
+      if (result.newTickets) {
+        updateTickets(result.newTickets);
+      }
       refetch();
     } catch (error: any) {
       toast.error(error.message);
@@ -397,7 +401,7 @@ export default function QuestsPage() {
                   <div className="mt-2 p-2 bg-arcade-purple/20 rounded">
                     <p className="text-sm text-arcade-purple">
                       Active prediction: {quest.activePrediction.prediction.toUpperCase()}
-                      from ${quest.activePrediction.initialPrice.toFixed(2)}
+                      {quest.activePrediction.initialPrice && ` from $${quest.activePrediction.initialPrice.toFixed(2)}`}
                     </p>
                   </div>
                 )}
@@ -504,32 +508,41 @@ export default function QuestsPage() {
             {/* Whale Hunting */}
             {quest.slug === 'whale_hunt' && (
               <div>
-                <div className="mb-4">
-                  <p className="text-sm text-gray-400 mb-3">Which launchpad will have the most volume?</p>
-                  <div className="grid grid-cols-1 gap-2">
-                    <button
-                      onClick={() => handleLaunchpadPrediction(quest.slug, 'bonk')}
-                      disabled={!quest.available}
-                      className="py-2 rounded-lg bg-orange-500/20 border border-orange-500/50 hover:bg-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
-                      🟠 Bonk
-                    </button>
-                    <button
-                      onClick={() => handleLaunchpadPrediction(quest.slug, 'pump')}
-                      disabled={!quest.available}
-                      className="py-2 rounded-lg bg-purple-500/20 border border-purple-500/50 hover:bg-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
-                      🟣 Pump.fun
-                    </button>
-                    <button
-                      onClick={() => handleLaunchpadPrediction(quest.slug, 'curve')}
-                      disabled={!quest.available}
-                      className="py-2 rounded-lg bg-blue-500/20 border border-blue-500/50 hover:bg-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
-                      🔵 Virtual Curve
-                    </button>
+                {quest.activePrediction ? (
+                  <div className="p-3 bg-arcade-purple/20 rounded">
+                    <p className="text-sm text-arcade-purple">
+                      Volume prediction in progress: {quest.activePrediction.choice?.toUpperCase() || 'Processing...'}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">Check back in 2 hours for results</p>
                   </div>
-                </div>
+                ) : (
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-400 mb-3">Which launchpad will have the most volume?</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      <button
+                        onClick={() => handleLaunchpadPrediction(quest.slug, 'bonk')}
+                        disabled={!quest.available}
+                        className="py-2 rounded-lg bg-orange-500/20 border border-orange-500/50 hover:bg-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      >
+                        🟠 Bonk
+                      </button>
+                      <button
+                        onClick={() => handleLaunchpadPrediction(quest.slug, 'pump')}
+                        disabled={!quest.available}
+                        className="py-2 rounded-lg bg-purple-500/20 border border-purple-500/50 hover:bg-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      >
+                        🟣 Pump.fun
+                      </button>
+                      <button
+                        onClick={() => handleLaunchpadPrediction(quest.slug, 'curve')}
+                        disabled={!quest.available}
+                        className="py-2 rounded-lg bg-blue-500/20 border border-blue-500/50 hover:bg-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                      >
+                        🔵 Virtual Curve
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

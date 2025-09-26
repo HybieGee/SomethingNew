@@ -68,6 +68,12 @@ questRouter.get('/', authMiddleware, questsCache, async (c) => {
       if (predictionData) {
         activePrediction = predictionData;
       }
+    } else if (quest.slug === 'whale_hunt') {
+      // Check for volume predictions
+      const volumePrediction = await c.env.CACHE.get(`volume_prediction:${user.id}:${quest.id}`, 'json');
+      if (volumePrediction) {
+        activePrediction = volumePrediction;
+      }
     }
 
     // Check for faction loyalty tracking
@@ -358,10 +364,9 @@ questRouter.post('/complete', authMiddleware, questRateLimit, async (c) => {
         }
         break;
 
-      case 'trivia':
-        // Handle special trivia quests
+      case 'loyalty_streak':
+        // Handle faction loyalty
         if (quest.slug === 'faction_loyalty') {
-          // Handle faction loyalty
           const userFaction = await c.env.DB.prepare(`
             SELECT faction_id, joined_at FROM user_factions WHERE user_id = ?
           `).bind(user.id).first<any>();
@@ -413,15 +418,16 @@ questRouter.post('/complete', authMiddleware, questRateLimit, async (c) => {
               trackingStarted: true
             });
           }
-        } else {
-          // Regular trivia is handled by separate endpoints
-          return c.json({
-            error: 'Use /quests/trivia endpoint for trivia quests'
-          }, 400);
         }
         break;
 
-      default:
+      case 'trivia':
+        // Regular trivia is handled by separate endpoints
+        return c.json({
+          error: 'Use /quests/trivia endpoint for trivia quests'
+        }, 400);
+
+      case 'volume_prediction':
         // Handle volume prediction for whale hunting
         if (quest.slug === 'whale_hunt' && data.choice) {
           // Store the prediction (similar to Solana prediction but for launchpad volume)
@@ -441,8 +447,10 @@ questRouter.post('/complete', authMiddleware, questRateLimit, async (c) => {
             message: `Prediction recorded! You chose ${(data.choice as string).toUpperCase()}. Check back in 2 hours for results.`
           });
         }
+        break;
 
-        return c.json({ error: 'Unknown quest type' }, 400);
+      default:
+        return c.json({ error: `Unknown quest type: ${quest.type}` }, 400);
     }
 
     // Apply faction multiplier to reward
