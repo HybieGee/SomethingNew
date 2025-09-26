@@ -47,11 +47,11 @@ questRouter.get('/', authMiddleware, questsCache, async (c) => {
       // First check cache
       let predictionData = await c.env.CACHE.get(`prediction:${user.id}:${quest.id}`, 'json');
 
-      // If not in cache, check database for unresolved predictions
+      // If not in cache, check database for unresolved predictions that are still active
       if (!predictionData) {
         const dbPrediction = await c.env.DB.prepare(`
           SELECT * FROM price_predictions
-          WHERE user_id = ? AND quest_id = ? AND resolved = FALSE
+          WHERE user_id = ? AND quest_id = ? AND resolved = FALSE AND expires_at > datetime('now')
           ORDER BY created_at DESC LIMIT 1
         `).bind(user.id, quest.id).first();
 
@@ -347,7 +347,7 @@ questRouter.post('/complete', authMiddleware, questRateLimit, async (c) => {
 
           return c.json({
             success: true,
-            message: `Prediction recorded! SOL is currently at $${currentPrice.toFixed(2)}. Check back in 1 hour for results.`,
+            message: `Prediction recorded! SOL is currently at $${currentPrice.toFixed(2)}. Check back in 30 minutes for results.`,
             currentPrice
           });
         }

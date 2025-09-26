@@ -50,7 +50,7 @@ export async function storePricePrediction(
   currentPrice: number
 ): Promise<void> {
   const predictionId = crypto.randomUUID();
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
 
   await env.DB.prepare(`
     INSERT INTO price_predictions (id, user_id, quest_id, prediction, initial_price, expires_at, created_at)
@@ -73,7 +73,7 @@ export async function storePricePrediction(
       initialPrice: currentPrice,
       expiresAt: expiresAt.toISOString()
     }),
-    { expirationTtl: 3600 } // 1 hour
+    { expirationTtl: 1800 } // 30 minutes
   );
 }
 
