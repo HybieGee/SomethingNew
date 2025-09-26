@@ -22,7 +22,9 @@ app.use('*', cors({
     if (origin.includes('localhost') ||
         origin.includes('pages.dev') ||
         origin.includes('cloudflare') ||
-        origin.includes('127.0.0.1')) {
+        origin.includes('127.0.0.1') ||
+        origin === 'https://paircade.xyz' ||
+        origin === 'http://paircade.xyz') {
       return origin;
     }
     return false;
