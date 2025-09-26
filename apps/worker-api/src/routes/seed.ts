@@ -27,7 +27,7 @@ seedRouter.post('/quests', async (c) => {
         type: 'tap_challenge',
         min_reward: 5,
         max_reward: 25,
-        cooldown_minutes: 45,
+        cooldown_minutes: 5,
         active: true
       },
       {
@@ -58,8 +58,8 @@ seedRouter.post('/quests', async (c) => {
         title: 'Faction Loyalty Bonus',
         description: 'Stay loyal to your faction for 24 hours to earn bonus tickets!',
         type: 'loyalty_streak',
-        min_reward: 100,
-        max_reward: 200,
+        min_reward: 1000,
+        max_reward: 1000,
         cooldown_minutes: 1440, // 24 hours
         active: true
       },
