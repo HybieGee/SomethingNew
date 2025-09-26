@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Trophy, Gamepad2, Gift, ShoppingBag, User, BarChart3, Sparkles, Shield, Calendar, Coins } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
+import { CONTRACT_CONFIG, getFormattedCA } from '@/config/contract';
 
 const navItems = [
   { path: '/home', label: 'Home', icon: Gamepad2 },
@@ -35,13 +36,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </h1>
             </Link>
 
-            {/* CA Display - Hidden by default, can be shown when coin goes live */}
-            <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg">
-              <span className="text-sm text-yellow-300">CA:</span>
-              <code className="text-xs font-mono text-yellow-200 bg-black/20 px-2 py-1 rounded">
-                Coming Soon...
-              </code>
-            </div>
+            {/* CA Display - Controlled by config */}
+            {CONTRACT_CONFIG.SHOW_CONTRACT_ADDRESS && (
+              <div className="lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg">
+                <span className="text-sm text-yellow-300">CA:</span>
+                <code className="text-xs font-mono text-yellow-200 bg-black/20 px-2 py-1 rounded">
+                  {getFormattedCA()}
+                </code>
+              </div>
+            )}
 
             <div className="flex items-center gap-6">
               {user && (
