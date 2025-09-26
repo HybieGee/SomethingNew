@@ -19,8 +19,22 @@ export async function getSolanaPrice(cache?: any): Promise<number> {
 
   try {
     const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
-    const data = await response.json() as { solana: { usd: number } };
-    const price = data.solana.usd;
+    const data = await response.json();
+
+    console.log('🔍 CoinGecko API response:', JSON.stringify(data));
+
+    // Handle various possible response structures
+    let price: number;
+    if (data && data.solana && typeof data.solana.usd === 'number') {
+      price = data.solana.usd;
+    } else if (data && typeof data.usd === 'number') {
+      price = data.usd;
+    } else if (data && Array.isArray(data) && data[0] && typeof data[0].current_price === 'number') {
+      price = data[0].current_price;
+    } else {
+      console.error('❌ Unexpected CoinGecko response structure:', data);
+      throw new Error('Invalid API response structure');
+    }
 
     // Cache the price
     if (cache) {
@@ -62,16 +76,21 @@ export async function storePricePrediction(
   });
 
   try {
+    // Convert to SQLite-compatible datetime format
+    const expiresAtSqlite = expiresAt.toISOString().replace('T', ' ').slice(0, 19);
+
+    console.log('📅 SQLite datetime format:', expiresAtSqlite);
+
     await env.DB.prepare(`
-      INSERT INTO price_predictions (id, user_id, quest_id, prediction, initial_price, expires_at, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+      INSERT INTO price_predictions (id, user_id, quest_id, prediction, initial_price, expires_at)
+      VALUES (?, ?, ?, ?, ?, ?)
     `).bind(
       predictionId,
       userId,
       questId,
       prediction,
       currentPrice,
-      expiresAt.toISOString()
+      expiresAtSqlite
     ).run();
 
     console.log('✅ Database insert successful');
