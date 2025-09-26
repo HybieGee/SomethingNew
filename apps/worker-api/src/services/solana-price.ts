@@ -20,6 +20,16 @@ export async function getSolanaPrice(cache?: any): Promise<number> {
   // Try multiple APIs in sequence with proper error handling
   const apis = [
     {
+      name: 'CoinPaprika',
+      url: 'https://api.coinpaprika.com/v1/tickers/sol-solana',
+      parser: (data: any) => {
+        if (data && data.quotes && data.quotes.USD && typeof data.quotes.USD.price === 'number') {
+          return data.quotes.USD.price;
+        }
+        throw new Error('Invalid CoinPaprika response structure');
+      }
+    },
+    {
       name: 'CoinCap',
       url: 'https://api.coincap.io/v2/assets/solana',
       parser: (data: any) => {
@@ -27,6 +37,16 @@ export async function getSolanaPrice(cache?: any): Promise<number> {
           return parseFloat(data.data.priceUsd);
         }
         throw new Error('Invalid CoinCap response structure');
+      }
+    },
+    {
+      name: 'CryptoCompare',
+      url: 'https://min-api.cryptocompare.com/data/price?fsym=SOL&tsyms=USD',
+      parser: (data: any) => {
+        if (data && typeof data.USD === 'number') {
+          return data.USD;
+        }
+        throw new Error('Invalid CryptoCompare response structure');
       }
     },
     {
@@ -40,16 +60,6 @@ export async function getSolanaPrice(cache?: any): Promise<number> {
           return data.solana.usd;
         }
         throw new Error('Invalid CoinGecko response structure');
-      }
-    },
-    {
-      name: 'Binance',
-      url: 'https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT',
-      parser: (data: any) => {
-        if (data && typeof data.price === 'string') {
-          return parseFloat(data.price);
-        }
-        throw new Error('Invalid Binance response structure');
       }
     }
   ];
@@ -139,6 +149,24 @@ export async function storePricePrediction(
 
   try {
     console.log('📅 Inserting with CURRENT_TIMESTAMP and relative expiry');
+    console.log('🔍 Database insert parameters:', {
+      predictionId,
+      userId,
+      questId,
+      prediction,
+      currentPrice,
+      typeOfPrice: typeof currentPrice,
+      isValidPrice: Number.isFinite(currentPrice)
+    });
+
+    // Validate all parameters before database insert
+    if (!predictionId || !userId || !questId || !prediction) {
+      throw new Error('Missing required parameters for database insert');
+    }
+
+    if (!Number.isFinite(currentPrice) || currentPrice <= 0) {
+      throw new Error(`Invalid price for database insert: ${currentPrice}`);
+    }
 
     // First, insert the base record using CURRENT_TIMESTAMP
     const insertResult = await env.DB.prepare(`
