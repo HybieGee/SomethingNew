@@ -19,6 +19,14 @@ profileRouter.get('/me', authMiddleware, profileCache, async (c) => {
     WHERE u.id = ?
   `).bind(user.id).first();
 
+  // Get user's faction information
+  const userFaction = await c.env.DB.prepare(`
+    SELECT f.id, f.name, f.symbol, f.description, f.bonus_multiplier, f.color, uf.joined_at
+    FROM user_factions uf
+    JOIN factions f ON uf.faction_id = f.id
+    WHERE uf.user_id = ?
+  `).bind(user.id).first();
+
   const badges = await c.env.DB.prepare(`
     SELECT b.* FROM badges b
     JOIN user_badges ub ON b.id = ub.badge_id
@@ -37,7 +45,8 @@ profileRouter.get('/me', authMiddleware, profileCache, async (c) => {
   return c.json({
     profile: {
       ...profile,
-      badges: badges.results
+      badges: badges.results,
+      faction: userFaction || null
     },
     activeBoost
   });

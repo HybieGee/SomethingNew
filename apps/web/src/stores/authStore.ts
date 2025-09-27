@@ -2,12 +2,23 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { api } from '@/lib/api';
 
+interface Faction {
+  id: string;
+  name: string;
+  symbol: string;
+  description: string;
+  bonus_multiplier: number;
+  color: string;
+  joined_at?: string;
+}
+
 interface User {
   id: string;
   username: string;
   tickets: number;
   streakDays: number;
   solanaAddress: string;
+  faction: Faction | null;
 }
 
 interface AuthState {
@@ -18,6 +29,7 @@ interface AuthState {
   register: (username: string, password: string, solanaAddress: string) => Promise<void>;
   logout: () => Promise<void>;
   updateTickets: (tickets: number) => void;
+  updateFaction: (faction: Faction | null) => void;
   checkAuth: () => Promise<void>;
 }
 
@@ -36,6 +48,7 @@ export const useAuthStore = create<AuthState>()(
             tickets: data.tickets,
             streakDays: data.streakDays,
             solanaAddress: data.solanaAddress || '',
+            faction: null, // Will be loaded by checkAuth after login
           },
           isAuthenticated: true,
         });
@@ -50,6 +63,7 @@ export const useAuthStore = create<AuthState>()(
             tickets: data.tickets,
             streakDays: 0,
             solanaAddress: data.solanaAddress || '',
+            faction: null, // New users don't have a faction yet
           },
           isAuthenticated: true,
         });
@@ -70,6 +84,12 @@ export const useAuthStore = create<AuthState>()(
         }));
       },
 
+      updateFaction: (faction) => {
+        set((state) => ({
+          user: state.user ? { ...state.user, faction } : null,
+        }));
+      },
+
       checkAuth: async () => {
         try {
           const profile = await api.profile.me();
@@ -80,6 +100,7 @@ export const useAuthStore = create<AuthState>()(
               tickets: profile.profile.tickets,
               streakDays: profile.profile.streak_days,
               solanaAddress: profile.profile.solana_address || '',
+              faction: profile.profile.faction || null,
             },
             isAuthenticated: true,
           });

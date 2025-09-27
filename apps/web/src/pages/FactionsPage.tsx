@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { Shield, Users, Zap } from 'lucide-react';
+import { useAuthStore } from '@/stores/authStore';
 
 // Faction icon mapping
 const factionIcons: Record<string, string> = {
@@ -25,6 +26,7 @@ interface Faction {
 
 export default function FactionsPage() {
   const queryClient = useQueryClient();
+  const updateFaction = useAuthStore((state) => state.updateFaction);
 
   const { data: factions, isLoading: loadingFactions } = useQuery({
     queryKey: ['factions'],
@@ -38,8 +40,23 @@ export default function FactionsPage() {
 
   const joinMutation = useMutation({
     mutationFn: api.factions.join,
-    onSuccess: () => {
+    onSuccess: async (_, factionId) => {
       toast.success('Successfully joined faction!');
+
+      // Find the joined faction and update auth store
+      const joinedFaction = factions?.factions.find((f: Faction) => f.id === factionId);
+      if (joinedFaction) {
+        updateFaction({
+          id: joinedFaction.id,
+          name: joinedFaction.name,
+          symbol: joinedFaction.symbol,
+          description: joinedFaction.description,
+          bonus_multiplier: joinedFaction.bonus_multiplier,
+          color: joinedFaction.color,
+          joined_at: new Date().toISOString()
+        });
+      }
+
       queryClient.invalidateQueries({ queryKey: ['userFaction'] });
       queryClient.invalidateQueries({ queryKey: ['factions'] });
     },
@@ -56,6 +73,10 @@ export default function FactionsPage() {
     mutationFn: api.factions.leave,
     onSuccess: () => {
       toast.success('Left faction successfully');
+
+      // Clear faction from auth store
+      updateFaction(null);
+
       queryClient.invalidateQueries({ queryKey: ['userFaction'] });
       queryClient.invalidateQueries({ queryKey: ['factions'] });
     },
