@@ -2,177 +2,141 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import React from 'react';
 import {
-  ArrowLeft,
-  Star,
-  TrendingUp,
-  Clock,
   Crown,
   Zap,
   Gift,
-  AlertCircle,
   CheckCircle,
   Coins,
   Target,
   Sparkles,
-  Diamond
+  Trophy,
+  Star,
+  Shield
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
 
 interface PremiumTier {
   name: string;
-  pairRequired: number;
+  tokenRequired: number;
   color: string;
+  icon: any;
   benefits: {
     questMultiplier: number;
     conversionBonus: number;
     exclusiveQuests: boolean;
     prioritySupport: boolean;
+    dailyBonus: number;
   };
 }
 
-interface PremiumSubscription {
-  tier: string;
-  pairAmount: number;
-  activatedAt: string;
-  status: 'active' | 'cancelled';
-}
-
-interface PremiumBenefits {
-  tier: string;
-  questMultiplier: number;
-  conversionBonus: number;
-  exclusiveQuests: boolean;
-  prioritySupport: boolean;
-  activatedAt: string;
-}
+const PREMIUM_TIERS: Record<string, PremiumTier> = {
+  bronze: {
+    name: 'Bronze',
+    tokenRequired: 20000,
+    color: 'from-orange-600 to-orange-700',
+    icon: Shield,
+    benefits: {
+      questMultiplier: 1.5,
+      conversionBonus: 0.05,
+      exclusiveQuests: false,
+      prioritySupport: false,
+      dailyBonus: 50
+    }
+  },
+  silver: {
+    name: 'Silver',
+    tokenRequired: 150000,
+    color: 'from-gray-400 to-gray-500',
+    icon: Star,
+    benefits: {
+      questMultiplier: 2.0,
+      conversionBonus: 0.10,
+      exclusiveQuests: true,
+      prioritySupport: false,
+      dailyBonus: 150
+    }
+  },
+  gold: {
+    name: 'Gold',
+    tokenRequired: 750000,
+    color: 'from-yellow-500 to-yellow-600',
+    icon: Crown,
+    benefits: {
+      questMultiplier: 3.0,
+      conversionBonus: 0.20,
+      exclusiveQuests: true,
+      prioritySupport: true,
+      dailyBonus: 500
+    }
+  }
+};
 
 export default function PremiumPage() {
   const user = useAuthStore((state) => state.user);
-  const [tiers, setTiers] = useState<Record<string, PremiumTier>>({});
-  const [subscription, setSubscription] = useState<PremiumSubscription | null>(null);
-  const [benefits, setBenefits] = useState<PremiumBenefits | null>(null);
+  const [tokenBalance, setTokenBalance] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [pairAmount, setPairAmount] = useState(250);
-  const [isActivating, setIsActivating] = useState(false);
-  const [isCancelling, setIsCancelling] = useState(false);
+  const [activeTier, setActiveTier] = useState<PremiumTier | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchTokenBalance = async () => {
       try {
-        // Fetch tiers
-        const tiersResponse = await fetch('/api/premium/tiers', {
-          credentials: 'include'
-        });
-        const tiersData = await tiersResponse.json();
-        setTiers(tiersData.tiers);
+        // Simulate fetching token balance - in production this would call the actual API
+        // For now, we'll use a mock value
+        const mockBalance = Math.floor(Math.random() * 1000000); // Random for demo
+        setTokenBalance(mockBalance);
 
-        // Fetch premium status
-        const statusResponse = await fetch('/api/premium/status', {
-          credentials: 'include'
-        });
-        const statusData = await statusResponse.json();
-        setSubscription(statusData.subscription);
-        setBenefits(statusData.benefits);
+        // Determine active tier based on balance
+        if (mockBalance >= PREMIUM_TIERS.gold.tokenRequired) {
+          setActiveTier(PREMIUM_TIERS.gold);
+        } else if (mockBalance >= PREMIUM_TIERS.silver.tokenRequired) {
+          setActiveTier(PREMIUM_TIERS.silver);
+        } else if (mockBalance >= PREMIUM_TIERS.bronze.tokenRequired) {
+          setActiveTier(PREMIUM_TIERS.bronze);
+        }
       } catch (error) {
-        console.error('Error fetching premium data:', error);
-        toast.error('Failed to load premium data');
+        console.error('Error fetching token balance:', error);
+        toast.error('Failed to load token balance');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    fetchTokenBalance();
+    // Refresh balance every 30 seconds
+    const interval = setInterval(fetchTokenBalance, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
-  const getSelectedTier = (): PremiumTier | null => {
-    const tierEntries = Object.entries(tiers);
-    for (let i = tierEntries.length - 1; i >= 0; i--) {
-      const [, tier] = tierEntries[i];
-      if (pairAmount >= tier.pairRequired) {
-        return tier;
-      }
+  const getProgressToNextTier = () => {
+    if (!activeTier) {
+      // Progress to Bronze
+      return (tokenBalance / PREMIUM_TIERS.bronze.tokenRequired) * 100;
+    } else if (activeTier.name === 'Bronze') {
+      // Progress from Bronze to Silver
+      const progress = ((tokenBalance - PREMIUM_TIERS.bronze.tokenRequired) /
+        (PREMIUM_TIERS.silver.tokenRequired - PREMIUM_TIERS.bronze.tokenRequired)) * 100;
+      return Math.min(100, Math.max(0, progress));
+    } else if (activeTier.name === 'Silver') {
+      // Progress from Silver to Gold
+      const progress = ((tokenBalance - PREMIUM_TIERS.silver.tokenRequired) /
+        (PREMIUM_TIERS.gold.tokenRequired - PREMIUM_TIERS.silver.tokenRequired)) * 100;
+      return Math.min(100, Math.max(0, progress));
     }
+    return 100; // Gold tier - maxed out
+  };
+
+  const getNextTierInfo = () => {
+    if (!activeTier) return PREMIUM_TIERS.bronze;
+    if (activeTier.name === 'Bronze') return PREMIUM_TIERS.silver;
+    if (activeTier.name === 'Silver') return PREMIUM_TIERS.gold;
     return null;
-  };
-
-  const handleActivate = async () => {
-    if (!user?.solanaAddress) {
-      toast.error('Please connect your Solana wallet first');
-      return;
-    }
-
-    const selectedTier = getSelectedTier();
-    if (!selectedTier) {
-      toast.error(`Minimum premium amount is ${Math.min(...Object.values(tiers).map(t => t.pairRequired))} $PAIR`);
-      return;
-    }
-
-    setIsActivating(true);
-    try {
-      const response = await fetch('/api/premium/activate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ pairAmount })
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        toast.success(data.message);
-        // Refresh data
-        window.location.reload();
-      } else {
-        toast.error(data.error);
-      }
-    } catch (error) {
-      toast.error('Failed to activate premium subscription');
-    } finally {
-      setIsActivating(false);
-    }
-  };
-
-  const handleCancel = async () => {
-    if (!confirm('Are you sure you want to cancel your premium subscription? You will lose all premium benefits.')) {
-      return;
-    }
-
-    setIsCancelling(true);
-    try {
-      const response = await fetch('/api/premium/cancel', {
-        method: 'POST',
-        credentials: 'include'
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        toast.success(data.message);
-        // Refresh data
-        window.location.reload();
-      } else {
-        toast.error(data.error);
-      }
-    } catch (error) {
-      toast.error('Failed to cancel premium subscription');
-    } finally {
-      setIsCancelling(false);
-    }
-  };
-
-  const getTierIcon = (tierName: string) => {
-    switch (tierName.toLowerCase()) {
-      case 'basic': return Star;
-      case 'premium': return Crown;
-      case 'elite': return Diamond;
-      default: return Star;
-    }
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-900/20 to-slate-900 flex items-center justify-center">
-        <div className="text-white">Loading premium data...</div>
+        <div className="text-white">Loading premium status...</div>
       </div>
     );
   }
@@ -188,185 +152,227 @@ export default function PremiumPage() {
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-full mb-6">
             <Crown className="w-4 h-4 text-purple-400" />
-            <span className="text-sm text-purple-300">Premium Subscriptions</span>
+            <span className="text-sm text-purple-300">Premium Membership</span>
           </div>
 
           <h1 className="text-5xl md:text-6xl font-bold mb-4">
             <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent">
-              Go Premium
+              Premium Benefits
             </span>
           </h1>
           <p className="text-xl text-gray-300 mb-8">
-            Unlock exclusive benefits and multiply your quest rewards
+            Hold $PAIR tokens to automatically unlock premium tiers
           </p>
         </motion.div>
 
-        {subscription ? (
-          // Active Premium Dashboard
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-8"
-          >
-            {/* Current Subscription */}
-            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur border border-white/10 rounded-xl p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${tiers[subscription.tier]?.color || 'from-purple-500 to-pink-500'} flex items-center justify-center`}>
-                    {React.createElement(getTierIcon(subscription.tier), { className: 'w-6 h-6 text-white' })}
-                  </div>
+        {/* Current Status Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur border border-white/10 rounded-xl p-8 mb-8"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">Your Premium Status</h2>
+              <p className="text-gray-400">
+                Token Balance: <span className="text-white font-bold">{tokenBalance.toLocaleString()} $PAIR</span>
+              </p>
+            </div>
+            {activeTier && (
+              <div className={`p-4 bg-gradient-to-r ${activeTier.color} rounded-xl`}>
+                {React.createElement(activeTier.icon, { className: 'w-8 h-8 text-white' })}
+              </div>
+            )}
+          </div>
+
+          {activeTier ? (
+            <>
+              <div className={`p-6 bg-gradient-to-r ${activeTier.color} rounded-xl mb-6`}>
+                <div className="flex items-center justify-between text-white">
                   <div>
-                    <h2 className="text-2xl font-bold text-white capitalize">{subscription.tier} Premium</h2>
-                    <p className="text-gray-400">{subscription.pairAmount.toLocaleString()} $PAIR staked</p>
+                    <h3 className="text-3xl font-bold">{activeTier.name} Tier Active</h3>
+                    <p className="text-sm opacity-90 mt-2">
+                      Minimum requirement: {activeTier.tokenRequired.toLocaleString()} $PAIR
+                    </p>
                   </div>
+                  <CheckCircle className="w-12 h-12" />
                 </div>
-                <button
-                  onClick={handleCancel}
-                  disabled={isCancelling}
-                  className="px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
-                >
-                  {isCancelling ? 'Cancelling...' : 'Cancel Subscription'}
-                </button>
               </div>
 
-              {/* Benefits Display */}
-              {benefits && (
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="text-center p-4 bg-white/5 rounded-lg">
-                    <Zap className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-                    <h3 className="font-bold text-white">{benefits.questMultiplier}x</h3>
-                    <p className="text-sm text-gray-400">Quest Multiplier</p>
+              {/* Active Benefits */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                <div className="text-center p-4 bg-white/5 rounded-lg">
+                  <Zap className="w-6 h-6 text-yellow-400 mx-auto mb-2" />
+                  <p className="font-bold text-white">{activeTier.benefits.questMultiplier}x</p>
+                  <p className="text-xs text-gray-400">Quest Rewards</p>
+                </div>
+                <div className="text-center p-4 bg-white/5 rounded-lg">
+                  <Coins className="w-6 h-6 text-green-400 mx-auto mb-2" />
+                  <p className="font-bold text-white">+{(activeTier.benefits.conversionBonus * 100).toFixed(0)}%</p>
+                  <p className="text-xs text-gray-400">Conversion Bonus</p>
+                </div>
+                <div className="text-center p-4 bg-white/5 rounded-lg">
+                  <Gift className="w-6 h-6 text-blue-400 mx-auto mb-2" />
+                  <p className="font-bold text-white">{activeTier.benefits.dailyBonus}</p>
+                  <p className="text-xs text-gray-400">Daily Tickets</p>
+                </div>
+                <div className="text-center p-4 bg-white/5 rounded-lg">
+                  <Target className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+                  <p className="font-bold text-white">{activeTier.benefits.exclusiveQuests ? 'Yes' : 'No'}</p>
+                  <p className="text-xs text-gray-400">Exclusive Quests</p>
+                </div>
+                <div className="text-center p-4 bg-white/5 rounded-lg">
+                  <Crown className="w-6 h-6 text-pink-400 mx-auto mb-2" />
+                  <p className="font-bold text-white">{activeTier.benefits.prioritySupport ? 'Yes' : 'No'}</p>
+                  <p className="text-xs text-gray-400">Priority Support</p>
+                </div>
+              </div>
+
+              {/* Progress to Next Tier */}
+              {getNextTierInfo() && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-400">Progress to {getNextTierInfo()!.name}</span>
+                    <span className="text-sm text-gray-400">
+                      {(getNextTierInfo()!.tokenRequired - tokenBalance).toLocaleString()} $PAIR needed
+                    </span>
                   </div>
-                  <div className="text-center p-4 bg-white/5 rounded-lg">
-                    <Coins className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                    <h3 className="font-bold text-white">{(benefits.conversionBonus * 100).toFixed(1)}%</h3>
-                    <p className="text-sm text-gray-400">Conversion Bonus</p>
-                  </div>
-                  <div className="text-center p-4 bg-white/5 rounded-lg">
-                    <Target className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-                    <h3 className="font-bold text-white">{benefits.exclusiveQuests ? 'Yes' : 'No'}</h3>
-                    <p className="text-sm text-gray-400">Exclusive Quests</p>
-                  </div>
-                  <div className="text-center p-4 bg-white/5 rounded-lg">
-                    <Crown className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-                    <h3 className="font-bold text-white">{benefits.prioritySupport ? 'Yes' : 'No'}</h3>
-                    <p className="text-sm text-gray-400">Priority Support</p>
+                  <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${getProgressToNextTier()}%` }}
+                      transition={{ duration: 1, ease: 'easeOut' }}
+                      className={`h-full bg-gradient-to-r ${getNextTierInfo()!.color}`}
+                    />
                   </div>
                 </div>
               )}
-
-              <div className="mt-6 p-4 bg-green-500/20 border border-green-500/30 rounded-lg">
-                <div className="flex items-center gap-2 text-green-400">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="font-bold">Premium Active</span>
+            </>
+          ) : (
+            <>
+              <div className="p-6 bg-gradient-to-r from-gray-600 to-gray-700 rounded-xl mb-6">
+                <div className="text-center text-white">
+                  <h3 className="text-2xl font-bold mb-2">No Premium Tier Active</h3>
+                  <p className="text-sm opacity-90">
+                    Hold at least {PREMIUM_TIERS.bronze.tokenRequired.toLocaleString()} $PAIR to unlock Bronze tier
+                  </p>
                 </div>
-                <p className="text-sm text-green-300 mt-1">
-                  Activated on {new Date(subscription.activatedAt).toLocaleDateString()}
-                </p>
               </div>
-            </div>
-          </motion.div>
-        ) : (
-          // Premium Activation Interface
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Activation Form */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur border border-white/10 rounded-xl p-8"
-            >
-              <h2 className="text-2xl font-bold mb-6 text-white">Activate Premium</h2>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    $PAIR Amount
-                  </label>
-                  <input
-                    type="number"
-                    value={pairAmount}
-                    onChange={(e) => setPairAmount(Number(e.target.value))}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    min="250"
-                    max="100000"
+              {/* Progress to Bronze */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-400">Progress to Bronze</span>
+                  <span className="text-sm text-gray-400">
+                    {(PREMIUM_TIERS.bronze.tokenRequired - tokenBalance).toLocaleString()} $PAIR needed
+                  </span>
+                </div>
+                <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${getProgressToNextTier()}%` }}
+                    transition={{ duration: 1, ease: 'easeOut' }}
+                    className="h-full bg-gradient-to-r from-orange-600 to-orange-700"
                   />
                 </div>
-
-                {/* Selected Tier Display */}
-                {getSelectedTier() && (
-                  <div className={`p-4 bg-gradient-to-r ${getSelectedTier()!.color} rounded-lg`}>
-                    <div className="flex items-center justify-between text-white">
-                      <div>
-                        <h3 className="font-bold capitalize">{getSelectedTier()!.name} Premium</h3>
-                        <p className="text-sm opacity-90">
-                          {getSelectedTier()!.benefits.questMultiplier}x quest rewards • {(getSelectedTier()!.benefits.conversionBonus * 100).toFixed(1)}% conversion bonus
-                        </p>
-                      </div>
-                      {React.createElement(getTierIcon(getSelectedTier()!.name), { className: 'w-8 h-8' })}
-                    </div>
-                  </div>
-                )}
-
-                <button
-                  onClick={handleActivate}
-                  disabled={isActivating || !getSelectedTier()}
-                  className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg font-bold text-white hover:shadow-lg hover:shadow-purple-500/25 transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isActivating ? 'Activating...' : 'Activate Premium'}
-                </button>
               </div>
-            </motion.div>
+            </>
+          )}
+        </motion.div>
 
-            {/* Tier Comparison */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="space-y-4"
-            >
-              <h2 className="text-2xl font-bold text-white mb-6">Premium Tiers</h2>
+        {/* All Tiers Display */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <h2 className="text-2xl font-bold text-white mb-6">Premium Tiers</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {Object.entries(PREMIUM_TIERS).map(([key, tier]) => {
+              const TierIcon = tier.icon;
+              const isActive = activeTier?.name === tier.name;
+              const isLocked = tokenBalance < tier.tokenRequired;
 
-              {Object.entries(tiers).map(([key, tier]) => {
-                const TierIcon = getTierIcon(tier.name);
-                return (
-                  <div key={key} className={`p-6 bg-gradient-to-r ${tier.color} rounded-xl`}>
-                    <div className="flex items-center justify-between text-white mb-4">
-                      <div className="flex items-center gap-3">
-                        <TierIcon className="w-8 h-8" />
-                        <div>
-                          <h3 className="text-xl font-bold capitalize">{tier.name}</h3>
-                          <p className="text-sm opacity-90">{tier.pairRequired.toLocaleString()} $PAIR minimum</p>
-                        </div>
-                      </div>
+              return (
+                <motion.div
+                  key={key}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className={`relative p-6 rounded-xl border ${
+                    isActive
+                      ? `bg-gradient-to-r ${tier.color} border-transparent`
+                      : isLocked
+                      ? 'bg-white/5 border-white/10 opacity-60'
+                      : 'bg-white/10 border-white/20'
+                  }`}
+                >
+                  {isActive && (
+                    <div className="absolute -top-3 -right-3 bg-green-500 rounded-full p-2">
+                      <CheckCircle className="w-5 h-5 text-white" />
                     </div>
+                  )}
 
-                    <div className="grid grid-cols-2 gap-4 text-white">
-                      <div className="flex items-center gap-2">
-                        <Zap className="w-4 h-4" />
-                        <span className="text-sm">{tier.benefits.questMultiplier}x Quest Rewards</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Coins className="w-4 h-4" />
-                        <span className="text-sm">{(tier.benefits.conversionBonus * 100).toFixed(1)}% Conversion Bonus</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Target className="w-4 h-4" />
-                        <span className="text-sm">{tier.benefits.exclusiveQuests ? 'Exclusive Quests' : 'Standard Quests'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Crown className="w-4 h-4" />
-                        <span className="text-sm">{tier.benefits.prioritySupport ? 'Priority Support' : 'Standard Support'}</span>
-                      </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className={`text-xl font-bold ${isActive ? 'text-white' : 'text-white'}`}>
+                        {tier.name}
+                      </h3>
+                      <p className={`text-sm ${isActive ? 'text-white/90' : 'text-gray-400'}`}>
+                        {tier.tokenRequired.toLocaleString()} $PAIR
+                      </p>
+                    </div>
+                    <TierIcon className={`w-8 h-8 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Zap className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                      <span className={`text-sm ${isActive ? 'text-white' : 'text-gray-300'}`}>
+                        {tier.benefits.questMultiplier}x Quest Rewards
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Coins className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                      <span className={`text-sm ${isActive ? 'text-white' : 'text-gray-300'}`}>
+                        +{(tier.benefits.conversionBonus * 100).toFixed(0)}% Conversion Bonus
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Gift className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                      <span className={`text-sm ${isActive ? 'text-white' : 'text-gray-300'}`}>
+                        {tier.benefits.dailyBonus} Daily Bonus Tickets
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Target className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                      <span className={`text-sm ${isActive ? 'text-white' : 'text-gray-300'}`}>
+                        {tier.benefits.exclusiveQuests ? 'Exclusive Quests' : 'Standard Quests'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Crown className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                      <span className={`text-sm ${isActive ? 'text-white' : 'text-gray-300'}`}>
+                        {tier.benefits.prioritySupport ? 'Priority Support' : 'Standard Support'}
+                      </span>
                     </div>
                   </div>
-                );
-              })}
-            </motion.div>
-          </div>
-        )}
 
-        {/* Features Overview */}
+                  {isLocked && (
+                    <div className="mt-4 pt-4 border-t border-white/10">
+                      <p className="text-xs text-gray-400">
+                        Hold {(tier.tokenRequired - tokenBalance).toLocaleString()} more $PAIR to unlock
+                      </p>
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {/* Info Box */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -376,29 +382,29 @@ export default function PremiumPage() {
           <Sparkles className="w-12 h-12 text-purple-400 mx-auto mb-4" />
           <h3 className="text-2xl font-bold mb-4 text-center">
             <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Premium Benefits
+              How Premium Works
             </span>
           </h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center">
-              <Zap className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-              <h4 className="font-bold text-white mb-1">Quest Multipliers</h4>
-              <p className="text-sm text-gray-300">Earn 1.5x to 3x more tickets from quests</p>
+          <p className="text-gray-300 text-center mb-6 max-w-2xl mx-auto">
+            Premium tiers are automatically activated based on your $PAIR token holdings.
+            The more tokens you hold, the better your benefits! Your tier updates in real-time
+            as your balance changes.
+          </p>
+          <div className="grid md:grid-cols-3 gap-6 text-center">
+            <div>
+              <Trophy className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+              <h4 className="font-bold text-white mb-1">Hold to Earn</h4>
+              <p className="text-sm text-gray-300">Simply hold $PAIR tokens in your wallet</p>
             </div>
-            <div className="text-center">
-              <Coins className="w-8 h-8 text-green-400 mx-auto mb-2" />
-              <h4 className="font-bold text-white mb-1">Conversion Bonuses</h4>
-              <p className="text-sm text-gray-300">Get extra SOL when converting tickets</p>
+            <div>
+              <Zap className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+              <h4 className="font-bold text-white mb-1">Auto-Activation</h4>
+              <p className="text-sm text-gray-300">Tiers activate automatically when you qualify</p>
             </div>
-            <div className="text-center">
-              <Target className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-              <h4 className="font-bold text-white mb-1">Exclusive Quests</h4>
-              <p className="text-sm text-gray-300">Access premium-only challenges</p>
-            </div>
-            <div className="text-center">
-              <Crown className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-              <h4 className="font-bold text-white mb-1">Priority Support</h4>
-              <p className="text-sm text-gray-300">Fast-track customer service</p>
+            <div>
+              <Gift className="w-8 h-8 text-green-400 mx-auto mb-2" />
+              <h4 className="font-bold text-white mb-1">Instant Benefits</h4>
+              <p className="text-sm text-gray-300">Start earning bonuses immediately</p>
             </div>
           </div>
         </motion.div>

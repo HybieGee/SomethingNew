@@ -47,40 +47,28 @@ interface StakingStats {
 
 export default function StakingPage() {
   const user = useAuthStore((state) => state.user);
-  const [tiers, setTiers] = useState<Record<string, StakingTier>>({});
+  const [tiers, setTiers] = useState<Record<string, StakingTier>>({
+    bronze: { name: 'Bronze', minAmount: 100, dailyTickets: 10, lockDays: 7, color: 'from-orange-600 to-orange-700' },
+    silver: { name: 'Silver', minAmount: 500, dailyTickets: 60, lockDays: 14, color: 'from-gray-400 to-gray-500' },
+    gold: { name: 'Gold', minAmount: 1000, dailyTickets: 150, lockDays: 30, color: 'from-yellow-500 to-yellow-600' },
+    diamond: { name: 'Diamond', minAmount: 5000, dailyTickets: 800, lockDays: 60, color: 'from-blue-400 to-purple-500' }
+  });
   const [pools, setPools] = useState<StakingPool[]>([]);
-  const [stats, setStats] = useState<StakingStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<StakingStats | null>({
+    totalStaked: 0,
+    totalClaimed: 0,
+    activePools: 0,
+    nextUnlock: null
+  });
+  const [loading, setLoading] = useState(false);
   const [stakeAmount, setStakeAmount] = useState(100);
   const [isStaking, setIsStaking] = useState(false);
   const [isClaiming, setIsClaiming] = useState(false);
 
+  // Remove the API calls since it's coming soon
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch tiers
-        const tiersResponse = await fetch('/api/staking/tiers', {
-          credentials: 'include'
-        });
-        const tiersData = await tiersResponse.json();
-        setTiers(tiersData.tiers);
-
-        // Fetch dashboard data
-        const dashboardResponse = await fetch('/api/staking/dashboard', {
-          credentials: 'include'
-        });
-        const dashboardData = await dashboardResponse.json();
-        setPools(dashboardData.pools || []);
-        setStats(dashboardData.stats);
-      } catch (error) {
-        console.error('Error fetching staking data:', error);
-        toast.error('Failed to load staking data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    // Mock data for display purposes
+    setLoading(false);
   }, []);
 
   const getSelectedTier = (): StakingTier | null => {
@@ -192,8 +180,58 @@ export default function StakingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-900/20 to-slate-900">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-900/20 to-slate-900 relative">
+      {/* Coming Soon Overlay */}
+      <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-center p-12 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-2xl max-w-2xl mx-4"
+        >
+          <div className="flex items-center justify-center mb-6">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center animate-pulse">
+              <Trophy className="w-10 h-10 text-white" />
+            </div>
+          </div>
+
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            <span className="bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
+              Staking Coming Soon
+            </span>
+          </h2>
+
+          <p className="text-xl text-gray-300 mb-6">
+            Lock your $PAIR tokens to earn daily ticket rewards
+          </p>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="p-3 bg-white/5 rounded-lg">
+              <p className="text-2xl font-bold text-yellow-400">4</p>
+              <p className="text-sm text-gray-400">Tiers</p>
+            </div>
+            <div className="p-3 bg-white/5 rounded-lg">
+              <p className="text-2xl font-bold text-green-400">800</p>
+              <p className="text-sm text-gray-400">Max Daily</p>
+            </div>
+            <div className="p-3 bg-white/5 rounded-lg">
+              <p className="text-2xl font-bold text-blue-400">60</p>
+              <p className="text-sm text-gray-400">Days Lock</p>
+            </div>
+            <div className="p-3 bg-white/5 rounded-lg">
+              <p className="text-2xl font-bold text-purple-400">100</p>
+              <p className="text-sm text-gray-400">Min $PAIR</p>
+            </div>
+          </div>
+
+          <p className="text-sm text-gray-400">
+            We're preparing an amazing staking experience for you. Check back soon!
+          </p>
+        </motion.div>
+      </div>
+
+      {/* Blurred Background Content */}
+      <div className="container mx-auto px-4 py-8 max-w-6xl opacity-30 blur-sm">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
