@@ -42,12 +42,8 @@ export const getFormattedCA = () => {
     return CONTRACT_CONFIG.PRE_LAUNCH_MESSAGE;
   }
 
-  // Shorten address for display: AbCd...1234
-  const addr = CONTRACT_CONFIG.CONTRACT_ADDRESS;
-  if (addr.length > 10) {
-    return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
-  }
-  return addr;
+  // Return full address for display
+  return CONTRACT_CONFIG.CONTRACT_ADDRESS;
 };
 
 // Helper function to get full explorer URL
