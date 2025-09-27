@@ -7,6 +7,7 @@ interface User {
   username: string;
   tickets: number;
   streakDays: number;
+  solanaAddress: string;
 }
 
 interface AuthState {
@@ -34,6 +35,7 @@ export const useAuthStore = create<AuthState>()(
             username: data.username,
             tickets: data.tickets,
             streakDays: data.streakDays,
+            solanaAddress: data.solanaAddress || '',
           },
           isAuthenticated: true,
         });
@@ -47,6 +49,7 @@ export const useAuthStore = create<AuthState>()(
             username: data.username,
             tickets: data.tickets,
             streakDays: 0,
+            solanaAddress: data.solanaAddress || '',
           },
           isAuthenticated: true,
         });
@@ -76,6 +79,7 @@ export const useAuthStore = create<AuthState>()(
               username: profile.profile.username,
               tickets: profile.profile.tickets,
               streakDays: profile.profile.streak_days,
+              solanaAddress: profile.profile.solana_address || '',
             },
             isAuthenticated: true,
           });
