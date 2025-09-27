@@ -28,8 +28,7 @@ script_name = "raffle-arcade-api"
 tag = "v1"
 new_classes = ["RaffleDO"]
 
-[secrets]
-# Add these in Cloudflare dashboard:
+# Secrets to add in Cloudflare dashboard:
 # ADMIN_SECRET
 # SERVER_SEED
 # DEV_WALLET_PRIVATE_KEY

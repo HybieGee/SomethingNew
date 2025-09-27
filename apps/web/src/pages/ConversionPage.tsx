@@ -101,7 +101,7 @@ export default function ConversionPage() {
         credentials: 'include',
         body: JSON.stringify({
           ticketAmount: ticketsToConvert,
-          solanaAddress: user?.solana_address
+          solanaAddress: user?.solanaAddress
         })
       });
 
