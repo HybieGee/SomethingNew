@@ -5,7 +5,7 @@
 
 export const CONTRACT_CONFIG = {
   // Token Contract Address - UPDATE THIS WHEN TOKEN LAUNCHES
-  CONTRACT_ADDRESS: 'Coming Soon...', // Replace with actual CA like: 'AbCdEf123456789...'
+  CONTRACT_ADDRESS: 'DeRTeagK3SaCSpJS3HdSZVn6PakTXEBmgQZv45mzpump', // Replace with actual CA like: 'AbCdEf123456789...'
 
   // Token Symbol
   TOKEN_SYMBOL: 'PAIR',
@@ -20,10 +20,10 @@ export const CONTRACT_CONFIG = {
   EXPLORER_URL: 'https://solscan.io/token/', // Will append CONTRACT_ADDRESS
 
   // Show/Hide CA in UI
-  SHOW_CONTRACT_ADDRESS: false, // Set to true when ready to display CA
+  SHOW_CONTRACT_ADDRESS: true, // Set to true when ready to display CA
 
   // Launch status
-  IS_LAUNCHED: false, // Set to true when token is live
+  IS_LAUNCHED: true, // Set to true when token is live
 
   // Pre-launch message
   PRE_LAUNCH_MESSAGE: 'Coming Soon...',
