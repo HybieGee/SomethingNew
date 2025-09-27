@@ -194,6 +194,82 @@ seedRouter.post('/factions', async (c) => {
   }
 });
 
+// Create staking tables
+seedRouter.post('/init-staking', async (c) => {
+  try {
+    console.log('Creating staking tables...');
+
+    // Staking pools table
+    await c.env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS staking_pools (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        pair_amount REAL NOT NULL,
+        staked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        unlock_at DATETIME NOT NULL,
+        daily_ticket_rate INTEGER NOT NULL,
+        last_claim_at DATETIME,
+        tier TEXT NOT NULL,
+        status TEXT DEFAULT 'active',
+        FOREIGN KEY (user_id) REFERENCES users (id)
+      )
+    `).run();
+
+    // Staking claims table
+    await c.env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS staking_claims (
+        id TEXT PRIMARY KEY,
+        pool_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        tickets_earned INTEGER NOT NULL,
+        claimed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (pool_id) REFERENCES staking_pools (id),
+        FOREIGN KEY (user_id) REFERENCES users (id)
+      )
+    `).run();
+
+    // Premium subscriptions table
+    await c.env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS premium_subscriptions (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        tier TEXT NOT NULL,
+        pair_locked REAL NOT NULL,
+        activated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        expires_at DATETIME,
+        auto_renew BOOLEAN DEFAULT true,
+        status TEXT DEFAULT 'active',
+        FOREIGN KEY (user_id) REFERENCES users (id)
+      )
+    `).run();
+
+    // Premium quests table
+    await c.env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS premium_quests (
+        id TEXT PRIMARY KEY,
+        quest_id TEXT NOT NULL,
+        tier_required TEXT NOT NULL,
+        multiplier REAL DEFAULT 2.0,
+        exclusive BOOLEAN DEFAULT true,
+        FOREIGN KEY (quest_id) REFERENCES quests (id)
+      )
+    `).run();
+
+    console.log('✅ Staking and premium tables created');
+
+    return c.json({
+      success: true,
+      message: 'Staking and premium tables initialized successfully'
+    });
+  } catch (error) {
+    console.error('Error creating staking tables:', error);
+    return c.json({
+      error: 'Failed to create staking tables',
+      details: error.message
+    }, 500);
+  }
+});
+
 seedRouter.post('/raffles', async (c) => {
   try {
     // Clear existing raffles first

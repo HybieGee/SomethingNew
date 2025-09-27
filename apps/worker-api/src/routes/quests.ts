@@ -5,6 +5,7 @@ import { getSolanaPrice, storePricePrediction, checkPredictionResult } from '../
 import { getRandomQuestions, calculateTriviaReward } from '../services/trivia';
 import { questRateLimit } from '../middleware/rateLimit';
 import { questsCache } from '../middleware/cache';
+import { applyPremiumMultiplier } from '../services/premium';
 import type { Env } from '../types';
 
 export const questRouter = new Hono<{ Bindings: Env }>();
@@ -186,6 +187,9 @@ questRouter.post('/trivia/submit', authMiddleware, async (c) => {
       finalReward = Math.floor(baseReward * userFaction.bonus_multiplier);
     }
 
+    // Apply premium multiplier
+    finalReward = await applyPremiumMultiplier(c.env, user.id, finalReward);
+
     // Update user tickets
     const userInfo = await c.env.DB.prepare(`
       SELECT tickets FROM users WHERE id = ?
@@ -264,6 +268,9 @@ questRouter.get('/prediction/check', authMiddleware, async (c) => {
     if (userFaction && userFaction.bonus_multiplier) {
       finalReward = Math.floor(result.reward * userFaction.bonus_multiplier);
     }
+
+    // Apply premium multiplier
+    finalReward = await applyPremiumMultiplier(c.env, user.id, finalReward);
 
     // Update user tickets
     const userInfo = await c.env.DB.prepare(`
@@ -502,6 +509,9 @@ questRouter.post('/complete', authMiddleware, questRateLimit, async (c) => {
     if (userFaction && userFaction.bonus_multiplier) {
       finalReward = Math.floor(reward * userFaction.bonus_multiplier);
     }
+
+    // Apply premium multiplier
+    finalReward = await applyPremiumMultiplier(c.env, user.id, finalReward);
 
     // Update user tickets
     const userInfo = await c.env.DB.prepare(`

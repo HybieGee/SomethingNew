@@ -11,6 +11,8 @@ import { seedRouter } from './routes/seed';
 import { factionRouter } from './routes/factions';
 import { bugRouter } from './routes/bugs';
 import { conversionRouter } from './routes/conversion';
+import { stakingRouter } from './routes/staking';
+import { premiumRouter } from './routes/premium';
 import { generalRateLimit } from './middleware/rateLimit';
 import { RaffleDO } from './durable-objects/RaffleDO';
 import type { Env } from './types';
@@ -68,6 +70,8 @@ app.route('/seed', seedRouter);
 app.route('/factions', factionRouter);
 app.route('/bugs', bugRouter);
 app.route('/conversion', conversionRouter);
+app.route('/staking', stakingRouter);
+app.route('/premium', premiumRouter);
 
 app.onError((err, c) => {
   console.error(`Error: ${err.message}`, err.stack);
