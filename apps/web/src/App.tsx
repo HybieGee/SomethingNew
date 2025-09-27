@@ -15,6 +15,8 @@ import AdminPage from '@/pages/AdminPage';
 import FactionsPage from '@/pages/FactionsPage';
 import RoadmapPage from '@/pages/RoadmapPage';
 import ConversionPage from '@/pages/ConversionPage';
+import StakingPage from '@/pages/StakingPage';
+import PremiumPage from '@/pages/PremiumPage';
 import BugReportPage from '@/pages/BugReportPage';
 import BugReportsAdminPage from '@/pages/BugReportsAdminPage';
 
@@ -127,6 +129,30 @@ function App() {
           isAuthenticated ? (
             <Layout>
               <ConversionPage />
+            </Layout>
+          ) : (
+            <Navigate to="/auth" />
+          )
+        }
+      />
+      <Route
+        path="/staking"
+        element={
+          isAuthenticated ? (
+            <Layout>
+              <StakingPage />
+            </Layout>
+          ) : (
+            <Navigate to="/auth" />
+          )
+        }
+      />
+      <Route
+        path="/premium"
+        element={
+          isAuthenticated ? (
+            <Layout>
+              <PremiumPage />
             </Layout>
           ) : (
             <Navigate to="/auth" />

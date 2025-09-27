@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Trophy, Gamepad2, Gift, ShoppingBag, User, BarChart3, Sparkles, Shield, Calendar, Coins, Bug } from 'lucide-react';
+import { Trophy, Gamepad2, Gift, ShoppingBag, User, BarChart3, Sparkles, Shield, Calendar, Coins, Bug, Crown } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { CONTRACT_CONFIG, getFormattedCA } from '@/config/contract';
 
@@ -9,9 +9,11 @@ const navItems = [
   { path: '/quests', label: 'Quests', icon: Sparkles },
   { path: '/raffles', label: 'Raffles', icon: Gift },
   { path: '/factions', label: 'Factions', icon: Shield },
+  { path: '/staking', label: 'Staking', icon: Trophy },
+  { path: '/premium', label: 'Premium', icon: Crown },
   { path: '/conversion', label: 'Conversion', icon: Coins },
   { path: '/store', label: 'Store', icon: ShoppingBag },
-  { path: '/leaderboard', label: 'Leaderboard', icon: Trophy },
+  { path: '/leaderboard', label: 'Leaderboard', icon: BarChart3 },
   { path: '/roadmap', label: 'Roadmap', icon: Calendar },
   { path: '/bug-report', label: 'Bug Report', icon: Bug },
   { path: '/profile', label: 'Profile', icon: User },

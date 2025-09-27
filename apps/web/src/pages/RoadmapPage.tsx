@@ -27,48 +27,56 @@ interface RoadmapItem {
 }
 
 const roadmapItems: RoadmapItem[] = [
-  // Q4 2025
-  {
-    title: 'Enhanced Quest System',
-    description: 'New quest types including DeFi challenges, cross-chain activities, and seasonal events',
-    quarter: 'Q4 2025',
-    status: 'planned',
-    category: 'features',
-    icon: Target
-  },
-  {
-    title: 'Advanced Faction Wars',
-    description: 'Team-based competitions, faction-exclusive rewards, and dynamic bonus multipliers',
-    quarter: 'Q4 2025',
-    status: 'planned',
-    category: 'features',
-    icon: Users
-  },
+  // Q4 2025 - COMPLETED
   {
     title: 'Ticket-to-SOL Exchange',
-    description: 'Direct conversion system allowing users to cash out accumulated tickets for SOL',
+    description: 'Direct conversion system allowing users to cash out accumulated tickets for SOL with $PAIR token validation',
     quarter: 'Q4 2025',
-    status: 'planned',
+    status: 'completed',
     category: 'economy',
     icon: Coins
   },
   {
-    title: 'Partner Marketing Launch',
-    description: 'Strategic partnerships with major DeFi protocols and meme coin projects',
+    title: '$PAIR Staking System',
+    description: '4-tier staking system (Bronze to Diamond) with daily ticket rewards up to 800 tickets/day',
     quarter: 'Q4 2025',
-    status: 'planned',
-    category: 'marketing',
-    icon: Globe
+    status: 'completed',
+    category: 'economy',
+    icon: Trophy
+  },
+  {
+    title: 'Premium Subscriptions',
+    description: '3-tier premium system with quest multipliers, exclusive content, and SOL conversion bonuses',
+    quarter: 'Q4 2025',
+    status: 'completed',
+    category: 'economy',
+    icon: Star
+  },
+  {
+    title: 'Real Blockchain Integration',
+    description: 'Full Solana Web3.js integration for token validation, transfers, and staking verification',
+    quarter: 'Q4 2025',
+    status: 'completed',
+    category: 'features',
+    icon: Zap
   },
 
   // Q1 2026
   {
-    title: 'NFT Integration',
-    description: 'Profile NFTs, achievement badges as NFTs, and special edition collectibles',
+    title: 'Staking & Premium UI',
+    description: 'Frontend interfaces for staking dashboard, premium subscription management, and claim systems',
+    quarter: 'Q1 2026',
+    status: 'in-progress',
+    category: 'features',
+    icon: Target
+  },
+  {
+    title: 'Enhanced Quest System',
+    description: 'New quest types including DeFi challenges, cross-chain activities, and seasonal events',
     quarter: 'Q1 2026',
     status: 'planned',
     category: 'features',
-    icon: Star
+    icon: Target
   },
   {
     title: 'Mobile App Beta',
@@ -79,20 +87,12 @@ const roadmapItems: RoadmapItem[] = [
     icon: Zap
   },
   {
-    title: 'Influencer Partnerships',
-    description: 'Collaborations with crypto influencers and content creators for user acquisition',
+    title: 'Partner Marketing Launch',
+    description: 'Strategic partnerships with major DeFi protocols and meme coin projects',
     quarter: 'Q1 2026',
     status: 'planned',
     category: 'marketing',
-    icon: TrendingUp
-  },
-  {
-    title: 'Premium Subscription',
-    description: 'Premium tier with exclusive quests, higher rewards, and VIP features',
-    quarter: 'Q1 2026',
-    status: 'planned',
-    category: 'economy',
-    icon: Trophy
+    icon: Globe
   },
 
   // Q2 2026
