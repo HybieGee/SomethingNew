@@ -32,3 +32,5 @@ new_classes = ["RaffleDO"]
 # Add these in Cloudflare dashboard:
 # ADMIN_SECRET
 # SERVER_SEED
+# DEV_WALLET_PRIVATE_KEY
+# PAIR_TOKEN_MINT

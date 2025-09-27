@@ -6,6 +6,8 @@ export interface Env {
   ADMIN_SECRET: string;
   SERVER_SEED: string;
   ENVIRONMENT: string;
+  DEV_WALLET_PRIVATE_KEY: string;
+  PAIR_TOKEN_MINT: string;
 }
 
 export interface SessionUser {

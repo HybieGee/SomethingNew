@@ -32,7 +32,8 @@
       "Bash(git pull:*)",
       "Bash(del bug_reports_table.sql)",
       "Bash(del update_quest_types.sql)",
-      "Bash(del simple_quest_fix.sql)"
+      "Bash(del simple_quest_fix.sql)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

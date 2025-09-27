@@ -8,6 +8,8 @@
     "build": "esbuild src/index.ts --bundle --outdir=dist --platform=neutral --format=esm"
   },
   "dependencies": {
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
     "hono": "^4.0.0",
     "zod": "^3.22.0"
   },

@@ -3,17 +3,23 @@ import { authMiddleware } from '../middleware/auth';
 import { generalRateLimit } from '../middleware/rateLimit';
 import { z } from 'zod';
 import type { Env } from '../types';
+import {
+  checkPairTokenEligibility,
+  transferSOLFromDevWallet,
+  getDevWalletBalance,
+  isValidSolanaAddress
+} from '../services/solana';
 
 const ConversionRequestSchema = z.object({
   ticketAmount: z.number().min(1000).max(1000000), // Minimum 1000 tickets, max 1M
-  solanaAddress: z.string().min(32).max(44), // Valid Solana address format
+  solanaAddress: z.string().min(32).max(44).refine(isValidSolanaAddress, {
+    message: 'Invalid Solana wallet address'
+  })
 });
 
 // Configuration constants
 const TICKETS_PER_SOL = 100000; // 100k tickets = 1 SOL
 const MIN_PAIR_HOLD_HOURS = 1; // Must hold $PAIR for 1 hour
-const PAIR_TOKEN_ADDRESS = 'YOUR_PAIR_TOKEN_MINT_ADDRESS'; // Replace with actual $PAIR token address
-const DEV_WALLET_PRIVATE_KEY = 'YOUR_DEV_WALLET_PRIVATE_KEY'; // Store in environment variables
 
 export const conversionRouter = new Hono<{ Bindings: Env }>();
 
@@ -37,12 +43,12 @@ conversionRouter.get('/eligibility', authMiddleware, async (c) => {
 
   try {
     // Check $PAIR token holding history
-    const eligibility = await checkPairTokenEligibility(user.solana_address);
+    const eligibility = await checkPairTokenEligibility(user.solana_address, MIN_PAIR_HOLD_HOURS, c.env.PAIR_TOKEN_MINT);
 
     return c.json({
       eligible: eligibility.eligible,
       pairBalance: eligibility.balance,
-      holdingDuration: eligibility.holdingHours,
+      holdingDuration: eligibility.holdingDurationHours,
       requiredHours: MIN_PAIR_HOLD_HOURS,
       message: eligibility.message
     });
@@ -73,7 +79,7 @@ conversionRouter.post('/convert', authMiddleware, generalRateLimit, async (c) =>
     }
 
     // Check $PAIR token eligibility
-    const eligibility = await checkPairTokenEligibility(user.solana_address);
+    const eligibility = await checkPairTokenEligibility(user.solana_address, MIN_PAIR_HOLD_HOURS, c.env.PAIR_TOKEN_MINT);
     if (!eligibility.eligible) {
       return c.json({
         error: 'Not eligible for conversion',
@@ -120,7 +126,7 @@ conversionRouter.post('/convert', authMiddleware, generalRateLimit, async (c) =>
       const transferResult = await transferSOLFromDevWallet(
         data.solanaAddress,
         solAmount,
-        c.env
+        c.env.DEV_WALLET_PRIVATE_KEY
       );
 
       if (transferResult.success) {
@@ -205,41 +211,3 @@ conversionRouter.get('/history', authMiddleware, async (c) => {
   }
 });
 
-// Helper function to check $PAIR token holding eligibility
-async function checkPairTokenEligibility(solanaAddress: string) {
-  // TODO: Implement actual Solana blockchain check for $PAIR token
-  // This would involve:
-  // 1. Query Solana RPC for token account balance
-  // 2. Check transaction history to determine holding duration
-  // 3. Verify user has held tokens for at least MIN_PAIR_HOLD_HOURS
-
-  // For now, returning mock data - replace with actual implementation
-  console.log(`🔍 Checking $PAIR token eligibility for ${solanaAddress}`);
-
-  // Mock implementation - replace with actual token checking logic
-  return {
-    eligible: true, // Set to false to test eligibility requirements
-    balance: 1000, // Mock $PAIR token balance
-    holdingHours: 2, // Mock holding duration
-    message: `User has held $PAIR tokens for 2 hours (required: ${MIN_PAIR_HOLD_HOURS} hour)`
-  };
-}
-
-// Helper function to transfer SOL from dev wallet
-async function transferSOLFromDevWallet(recipientAddress: string, solAmount: number, env: Env) {
-  // TODO: Implement actual SOL transfer using Solana Web3.js
-  // This would involve:
-  // 1. Create connection to Solana network
-  // 2. Load dev wallet from private key
-  // 3. Create and send transfer transaction
-  // 4. Return transaction hash on success
-
-  console.log(`💰 Transferring ${solAmount} SOL to ${recipientAddress}`);
-
-  // Mock implementation - replace with actual Solana transaction
-  return {
-    success: true,
-    transactionHash: `mock_tx_${Date.now()}`, // Replace with actual transaction hash
-    error: null
-  };
-}
