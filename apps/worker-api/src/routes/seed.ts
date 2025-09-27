@@ -138,9 +138,10 @@ seedRouter.post('/quests', async (c) => {
 
 seedRouter.post('/factions', async (c) => {
   try {
+    // Use fixed IDs to prevent duplicates
     const factions = [
       {
-        id: generateId(),
+        id: 'faction-usd1',
         name: 'USD1 Faction',
         symbol: 'USD1',
         description: 'The stability seekers - earn bonus rewards for USD-backed tokens',
@@ -148,7 +149,7 @@ seedRouter.post('/factions', async (c) => {
         color: '#10B981' // green
       },
       {
-        id: generateId(),
+        id: 'faction-bonk',
         name: 'BONK Faction',
         symbol: 'BONK',
         description: 'The meme warriors - double rewards for viral token success',
@@ -156,7 +157,7 @@ seedRouter.post('/factions', async (c) => {
         color: '#F59E0B' // yellow/orange
       },
       {
-        id: generateId(),
+        id: 'faction-pump',
         name: 'PUMP Faction',
         symbol: 'PUMP',
         description: 'The trend riders - maximum multipliers for trending tokens',
@@ -164,7 +165,7 @@ seedRouter.post('/factions', async (c) => {
         color: '#EF4444' // red
       },
       {
-        id: generateId(),
+        id: 'faction-bsc',
         name: 'BSC Faction',
         symbol: 'BSC',
         description: 'The builders - consistent rewards for ecosystem growth',
@@ -173,9 +174,20 @@ seedRouter.post('/factions', async (c) => {
       }
     ];
 
+    // Clear user faction associations temporarily
+    await c.env.DB.prepare(`DELETE FROM user_factions`).run();
+
+    // Clear existing factions with the same symbols
     for (const faction of factions) {
       await c.env.DB.prepare(`
-        INSERT OR REPLACE INTO factions (id, name, symbol, description, bonus_multiplier, color)
+        DELETE FROM factions WHERE symbol = ?
+      `).bind(faction.symbol).run();
+    }
+
+    // Then insert the new ones with fixed IDs
+    for (const faction of factions) {
+      await c.env.DB.prepare(`
+        INSERT INTO factions (id, name, symbol, description, bonus_multiplier, color)
         VALUES (?, ?, ?, ?, ?, ?)
       `).bind(
         faction.id,
@@ -340,5 +352,21 @@ seedRouter.post('/raffles', async (c) => {
   } catch (error: any) {
     console.error('Raffle seeding error:', error);
     return c.json({ error: 'Failed to seed raffles', details: error.message }, 500);
+  }
+});
+
+// Clean up duplicate factions
+seedRouter.post('/cleanup-factions', async (c) => {
+  try {
+    // First remove users from factions
+    await c.env.DB.prepare(`DELETE FROM user_factions`).run();
+
+    // Then delete all existing factions
+    await c.env.DB.prepare(`DELETE FROM factions`).run();
+
+    return c.json({ success: true, message: 'Factions and user faction associations cleaned up successfully' });
+  } catch (error: any) {
+    console.error('Faction cleanup error:', error);
+    return c.json({ error: 'Failed to cleanup factions', details: error.message }, 500);
   }
 });

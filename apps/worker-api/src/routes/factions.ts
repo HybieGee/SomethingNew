@@ -12,6 +12,7 @@ factionRouter.get('/', async (c) => {
       SELECT id, name, symbol, description, bonus_multiplier, color,
         (SELECT COUNT(*) FROM user_factions WHERE faction_id = factions.id) as member_count
       FROM factions
+      GROUP BY symbol
       ORDER BY name
     `).all();
 
