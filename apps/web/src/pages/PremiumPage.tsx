@@ -81,22 +81,33 @@ export default function PremiumPage() {
   useEffect(() => {
     const fetchTokenBalance = async () => {
       try {
-        // Simulate fetching token balance - in production this would call the actual API
-        // For now, we'll use a mock value
-        const mockBalance = Math.floor(Math.random() * 1000000); // Random for demo
-        setTokenBalance(mockBalance);
+        if (!user?.solanaAddress) {
+          setTokenBalance(0);
+          setActiveTier(null);
+          setLoading(false);
+          return;
+        }
+
+        // TODO: In production, this will call the Solana API to check actual $PAIR token balance
+        // For now, we'll set to 0 since the token hasn't been launched yet
+        const actualBalance = 0; // Will be replaced with real Solana token balance check
+        setTokenBalance(actualBalance);
 
         // Determine active tier based on balance
-        if (mockBalance >= PREMIUM_TIERS.gold.tokenRequired) {
+        if (actualBalance >= PREMIUM_TIERS.gold.tokenRequired) {
           setActiveTier(PREMIUM_TIERS.gold);
-        } else if (mockBalance >= PREMIUM_TIERS.silver.tokenRequired) {
+        } else if (actualBalance >= PREMIUM_TIERS.silver.tokenRequired) {
           setActiveTier(PREMIUM_TIERS.silver);
-        } else if (mockBalance >= PREMIUM_TIERS.bronze.tokenRequired) {
+        } else if (actualBalance >= PREMIUM_TIERS.bronze.tokenRequired) {
           setActiveTier(PREMIUM_TIERS.bronze);
+        } else {
+          setActiveTier(null);
         }
       } catch (error) {
         console.error('Error fetching token balance:', error);
         toast.error('Failed to load token balance');
+        setTokenBalance(0);
+        setActiveTier(null);
       } finally {
         setLoading(false);
       }
