@@ -370,3 +370,25 @@ seedRouter.post('/cleanup-factions', async (c) => {
     return c.json({ error: 'Failed to cleanup factions', details: error.message }, 500);
   }
 });
+
+// Add missing USD1 faction
+seedRouter.post('/add-usd1-faction', async (c) => {
+  try {
+    await c.env.DB.prepare(`
+      INSERT INTO factions (id, name, symbol, description, bonus_multiplier, color)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(
+      'faction-usd1',
+      'USD1 Faction',
+      'USD1',
+      'The stability seekers - earn bonus rewards for USD-backed tokens',
+      1.2,
+      '#10B981'
+    ).run();
+
+    return c.json({ success: true, message: 'USD1 faction added successfully' });
+  } catch (error: any) {
+    console.error('USD1 faction add error:', error);
+    return c.json({ error: 'Failed to add USD1 faction', details: error.message }, 500);
+  }
+});
